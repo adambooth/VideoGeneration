@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Dynamic shot of the Uploaded Character, Dexter, holding up a small, glowing vial of the finished concoction, presenting it triumphantly to the camera. His eyes are wide with manic energy, and he's practically vibrating with excitement. Behind him, a complex machine hums loudly, ready for deployment. He gestures wildly with his free hand.. The character looks into the camera and says, \"You thought your mandem were smart? Nah, we're on another level. This potion's gonna have everyone moving like they've seen a ghost. Pure chaos, fam.\" with natural expressive delivery and realistic lip synchronization. The quoted words are the exact spoken dialogue.. dutch angle, close-up, whip pan. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Emphasize Dexter's over-the-top personality and the absurdity of the situation.. Use the provided reference character in every scene. Preserve the same face, silhouette, outfit language, and visual identity across the whole sequence. The character should appear to speak or present the story to camera in each scene with expressive mouth movement, eye-line, and presenter energy.. Avoid: still shot, no energy, boring vial, simple background.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "still shot, no energy, boring vial, simple background",
+  "reference_image_signature": "42747c3dbe702d5093229275",
+  "reference_image_path": "C:/Users/adam_/Desktop/Dexterinlab.png",
+  "character_mode": "Speaking / Presenter",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "twist",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-twist\\reference-driven-twist_4697cbf70def56a883c91e45.jpg",
+  "clip_key": "4697cbf70def56a883c91e45",
+  "clip_name": "Reference-Driven twist",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-twist\\reference-driven-twist_4697cbf70def56a883c91e45.mp4"
+}

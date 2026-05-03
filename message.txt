@@ -1,0 +1,110 @@
+I have a PySide6 desktop app in ui/main_window.py and ui/setup_wizard.py.
+Recreate the entire UI as a single self-contained HTML file using React
+(inline Babel, no build step) served by a FastAPI backend.
+
+## Visual Design
+
+Dark theme. Exact color tokens:
+- Background:     #0d1117
+- Surface cards:  #161b22
+- Surface inputs: #1c2128
+- Borders:        #30363d
+- Body text:      #e6edf3
+- Muted text:     #7d8590
+- Accent blue:    #3b82f6  (hover: #1d4ed8)
+- Green success:  #3fb950
+- Red error:      #f85149
+- Yellow warning: #d29922
+
+Fonts: Inter (UI) + JetBrains Mono (logs, paths, model names, code values).
+Load both from Google Fonts.
+
+## Layout
+
+Full-viewport app. No scroll on the outer shell.
+
+1. TOP BAR (52px) — app title left, 4 status pill-badges (Backend / Edge TTS /
+   Visual APIs / FFmpeg), running stage indicator right.
+
+2. LEFT SIDEBAR (64px) — icon + label nav buttons for:
+   Project | Settings | Connections
+
+3. MAIN CONTENT AREA (flex: 1, scrollable) — shows active panel:
+
+   PROJECT PANEL (default):
+   - Pipeline stepper: 6 nodes (Extract→Script→Voice→Visuals→Render→Complete)
+     connected by lines. Done = green filled circle ✓. Active = blue glowing
+     circle. Pending = dark unfilled.
+   - Scene Concept card: Story Type + Character Notes (2-col grid), Concept
+     textarea, Export Folder row with Browse button.
+   - Action buttons row: Start Project | Open Existing | Pause | Stop.
+     When waiting for approval show: Continue (green) | Regenerate Step.
+   - 2-col grid below: Preview card (script text or video placeholder) +
+     Console card (JetBrains Mono log stream, auto-scroll, Clear button).
+
+   SETTINGS PANEL:
+   - Output card: Quality / FPS / Length / Platform (2-col grid of selects)
+   - Visuals card: Visual Provider / Character Mode / Music Style / Veo
+     Reference Image (with Browse + Clear)
+   - Veo Model card: model name in accent mono, reuse behavior note
+
+   CONNECTIONS PANEL:
+   - Gemini card: API Key (password) + Model select + Test/Save buttons +
+     inline status line (green ✓ / red ✗ + message)
+   - Narration card: Engine select; if Edge TTS show Voice select + Speed
+     slider + Volume slider (each with live % label); if ElevenLabs show
+     API Key + Voice ID; Test + Save buttons
+   - Stock Footage card: Pexels key + test; Pixabay key + test; inline statuses
+   - Export card: Save Folder + Generated Video Library (mono inputs) +
+     Open DeeVid Browser button + Save All button
+
+4. RIGHT RAIL (280px, project view only) — Quick Settings selects (Quality,
+   Platform, Length, Visual Provider) + Output Info table (Resolution, Narrator,
+   Model, Veo as mono values) + backend status box (green when online, red
+   when offline with start command shown).
+
+## Components
+
+ActionBtn variants: primary (blue fill), ghost (transparent + border),
+danger (red border/text), success (green fill). Disabled = #21262d bg,
+muted text. Loading = spinning border ring inside button.
+
+SectionTitle: 11px, uppercase, letter-spacing 0.08em, muted color.
+
+FieldInput / FieldSelect: surface2 bg, border on focus turns accent blue,
+transition 0.15s. Selects use custom SVG chevron, no browser default.
+
+PillBadge: surface2 bg, border, pill shape, colored dot left (green glow
+when ok, yellow = warn, red = err).
+
+Card: surface bg, 1px border, 12px radius.
+
+## Interactions
+
+- Backend health: poll GET /health every 5s → update top bar + right rail pill
+- WebSocket /ws/pipeline: receive JSON { type, ... } — handle:
+    log → append to console
+    stage_changed → advance stepper (map stage string to index)
+    approval_required → switch runState to 'waiting', show yellow banner
+    finished → switch to idle
+- On mount: GET /settings → populate all form fields
+- Start Project → POST /project/start with { source_prompt, story_type,
+  character_brief, export_folder, source_mode: 'scene' }
+- Stop → POST /project/stop
+- Pause → POST /project/pause
+- Continue → POST /project/continue
+- Regenerate → POST /project/regenerate
+- Test buttons → POST /connections/test-{gemini|edge|elevenlabs|pexels|pixabay}
+- Save buttons → POST /settings with the relevant fields
+- All API calls to http://localhost:8765
+
+## Technical
+
+- Single HTML file, no build step
+- React 18.3.1 + ReactDOM 18.3.1 + Babel standalone 7.29.0
+  (use the pinned unpkg URLs with integrity hashes)
+- No external UI libraries — hand-roll all components
+- min-width: 1680px on body
+- dark color-scheme on inputs/selects
+- Custom scrollbar: 5px wide, #161b22 track, #30363d thumb
+- Animations: @keyframes blink (status dot), pulse (running dot), spin (loading ring)

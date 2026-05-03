@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Stylized 2D cartoon storytelling, animated illustration, expressive motion, cinematic composition. Use the provided reference character in every scene. Preserve the same face, silhouette, outfit language, and visual identity across the whole sequence. The character should appear to speak or present the story to camera in each scene with expressive mouth movement, eye-line, and presenter energy.. cinematic animation of a full circular rainbow seen from an airplane, presenter reacting with awe. dynamic zoom out from presenter to wide shot of circular rainbow. Maintain consistent cartoon style, vibrant colors.. Avoid: generic arch rainbow, blurry, low quality, static image.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "generic arch rainbow, blurry, low quality, static image",
+  "reference_image_signature": "1880faf91ebcc11586166921",
+  "reference_image_path": "C:/Users/adam_/Desktop/testchar.png",
+  "character_mode": "Speaking / Presenter",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "2D Cartoon Storytelling",
+  "scene_purpose": "hook",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\2d-cartoon-storytelling-hook\\2d-cartoon-storytelling-hook_59b701d588ccc4bfcab20b53.jpg",
+  "clip_key": "59b701d588ccc4bfcab20b53",
+  "clip_name": "2D Cartoon Storytelling hook",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\2d-cartoon-storytelling-hook\\2d-cartoon-storytelling-hook_59b701d588ccc4bfcab20b53.mp4"
+}

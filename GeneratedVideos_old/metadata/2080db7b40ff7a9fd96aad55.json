@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Medium shot of the Uploaded Character (Jimmy Neutron) frantically pacing and looking around a dark, graffiti-covered alleyway. He's pulling at his clothes, twitching, and occasionally slapping his own head. Rain continues to fall, making the ground slick. A distant, blurry figure can be seen at the end of the alley. The camera whip-pans with his head movements.. The character looks into the camera and says, \"Where's my guy? This ain't no joke. My neurons are doing the electric slide. I'm twitching like a broken robot, fam. This ain't no finesse, this is a crisis. He said meet me by the bins, innit? This rain ain't helping my vibe.\" with natural expressive delivery and realistic lip synchronization. The quoted words are the exact spoken dialogue.. Medium shot, whip pan, slightly low angle. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Emphasize his erratic behavior and the oppressive environment.. Use the provided reference character in every scene. Preserve the same face, silhouette, outfit language, and visual identity across the whole sequence. The character should appear to speak or present the story to camera in each scene with expressive mouth movement, eye-line, and presenter energy.. Avoid: peaceful, still, bright daylight, empty street, no character interaction.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "peaceful, still, bright daylight, empty street, no character interaction",
+  "reference_image_signature": "2dfafc4c4e68f87d4b48598d",
+  "reference_image_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\Projects\\project-20260427-142857\\continuity_frames\\scene_01_last.jpg",
+  "character_mode": "Speaking / Presenter",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "escalation",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-escalation\\reference-driven-escalation_2080db7b40ff7a9fd96aad55.jpg",
+  "clip_key": "2080db7b40ff7a9fd96aad55",
+  "clip_name": "Reference-Driven escalation",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-escalation\\reference-driven-escalation_2080db7b40ff7a9fd96aad55.mp4"
+}

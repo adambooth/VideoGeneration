@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "A friendly, animated male character with short brown hair, wearing a casual blue t-shirt, stands in a brightly lit, modern studio. He gestures enthusiastically, looking directly at the camera.. The character looks into the camera and says, \"Ever wonder what crazy secrets your body is hiding? Get ready to have your mind blown!\" with natural expressive delivery and realistic lip synchronization. The quoted words are the exact spoken dialogue. Keep the character centered as the dominant subject, and the final beat of the clip must still show the character clearly on-screen.. medium shot, slight zoom in for emphasis. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Maintain consistent character appearance, lighting, and animation style.. Use the provided reference character in every scene. Preserve the same face, silhouette, outfit language, and visual identity across the whole sequence. The character should carry the whole scene visually with expressive motion, reactions, and clear performance beats. Keep the character as the clear main subject, framed near the center of the screen for the full shot. Do not let the camera drift away from the character, do not push the character to the edge of frame, and do not cut to empty environment details. End the shot with the character still centered and clearly visible on-screen.. Avoid: boring, static, dark, blurry, low quality, multiple characters, text on screen.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "boring, static, dark, blurry, low quality, multiple characters, text on screen",
+  "reference_image_signature": "69bff063128a9f914626af0a",
+  "reference_image_path": "C:/Users/adam_/Desktop/AutomatedVideoCreator/Characters/FactMaker.png",
+  "character_mode": "Solo",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "hook",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_585fb30e46252e90bd21ee70.jpg",
+  "clip_key": "585fb30e46252e90bd21ee70",
+  "clip_name": "Reference-Driven hook",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_585fb30e46252e90bd21ee70.mp4"
+}

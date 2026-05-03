@@ -1,0 +1,4 @@
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/www-livescience-com-20260426-134843/render_work/clip_00.mp4'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/www-livescience-com-20260426-134843/render_work/clip_01.mp4'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/www-livescience-com-20260426-134843/render_work/clip_02.mp4'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/www-livescience-com-20260426-134843/render_work/clip_03.mp4'

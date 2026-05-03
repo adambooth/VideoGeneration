@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Extreme close-up on the Uploaded Character (Jimmy Neutron)'s hand as he snatches a small, glowing vial (representing 'Brain Blast') from the shadowy figure's hand. His eyes widen with relief and a manic grin spreads across his face. He quickly brings the vial to his mouth, taking a dramatic gulp. A sudden, bright flash of light emanates from the vial as he consumes it. The camera quickly zooms out to a medium shot, showing him standing tall, chest puffed out, completely transformed and confident, the rain still falling but no longer bothering him.. The character looks into the camera and says, \"He better have the good stuff, the high-purity, the proper Brain Blast. My whole existence depends on this. Don't be washed, fam, don't be washed. Give it to me! The sweet, sweet knowledge. My brain cells are screaming. Ah, the Brain Blast! Pure, unadulterated genius. I'm back, baby!\" with natural expressive delivery and realistic lip synchronization. The quoted words are the exact spoken dialogue.. Extreme close-up, quick zoom out to medium shot. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Emphasize the comedic payoff and the instant, over-the-top transformation.. Use the provided reference character in every scene. Preserve the same face, silhouette, outfit language, and visual identity across the whole sequence. The character should appear to speak or present the story to camera in each scene with expressive mouth movement, eye-line, and presenter energy.. Avoid: continued withdrawal, sadness, disappointment, subtle change, no visual effect.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "continued withdrawal, sadness, disappointment, subtle change, no visual effect",
+  "reference_image_signature": "f84941d79d339516bc14f4eb",
+  "reference_image_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\Projects\\project-20260427-142857\\continuity_frames\\scene_03_last.jpg",
+  "character_mode": "Speaking / Presenter",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "payoff",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-payoff\\reference-driven-payoff_98a5a12b09e3c31146ad27ae.jpg",
+  "clip_key": "98a5a12b09e3c31146ad27ae",
+  "clip_name": "Reference-Driven payoff",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-payoff\\reference-driven-payoff_98a5a12b09e3c31146ad27ae.mp4"
+}

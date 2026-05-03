@@ -1,0 +1,14 @@
+FACT MODE INPUT
+Topic: Mind-Blowing Human Body Facts
+Story Type: Facts / Listicle Mode
+Character Notes: One Host Character, Animated, Fact Teller
+Character Image: uploaded and should be used as the recurring on-screen fact host.
+Create exactly 4 scenes total.
+Scene 1 is the intro hook clip.
+Scene 2 covers Fact 1 only.
+Scene 3 covers Fact 2 only.
+Scene 4 covers Fact 3 only.
+One fact per scene after the intro. Do not merge facts.
+Fact 1: Your brain can generate enough electricity to power a small light bulb.
+Fact 2: You’re taller in the morning than at night (your spine compresses during the day.
+Fact 3: Your stomach gets a new lining every few days to avoid digesting itself.

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1680" />
+<title>Automated Video Creator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0d1117; color: #e6edf3; font-family: 'Inter', sans-serif; font-size: 13px; min-width: 1680px; min-height: 100vh; }
+::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: #161b22; } ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+input, textarea, select { color-scheme: dark; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ── Config ─────────────────────────────────────── */
+const API = 'http://localhost:8765';
+const WS  = 'ws://localhost:8765';
+
+/* ── Constants ──────────────────────────────────── */
+const STAGES = [
+  { id:'extract',  label:'Extract',  icon:'⬡', desc:'Parse source concept' },
+  { id:'script',   label:'Script',   icon:'✦', desc:'Generate scene scripts' },
+  { id:'voice',    label:'Voice',    icon:'◈', desc:'Synthesize narration' },
+  { id:'visuals',  label:'Visuals',  icon:'◉', desc:'Generate Veo clips' },
+  { id:'render',   label:'Render',   icon:'▶', desc:'Compose final video' },
+  { id:'complete', label:'Complete', icon:'✓', desc:'Export & save' },
+];
+const STAGE_IDS = STAGES.map(s => s.id);
+const EDGE_VOICES    = ["en-US-GuyNeural","en-US-JennyNeural","en-US-AriaNeural","en-GB-RyanNeural","en-AU-NatashaNeural"];
+const VISUAL_PROVIDERS = ["Veo + Stock","DeeVid Automation","Stock Footage","Hybrid","AI Images","Local Fallback"];
+const MUSIC_STYLES   = ["Suspense","Ambient","Corporate","None"];
+const PLATFORMS      = ["YouTube Shorts","TikTok","Instagram Reels"];
+const CHARACTER_MODES= ["Auto","Speaking / Presenter","Reenacting"];
+const NARRATION_ENGINES = ["Edge TTS","ElevenLabs","Disabled"];
+const GEMINI_MODELS  = ["Gemini 2.5 Flash","Gemini 2.5 Flash Lite","Custom"];
+
+/* ── Design tokens ──────────────────────────────── */
+const C = {
+  bg:'#0d1117', surface:'#161b22', surface2:'#1c2128', border:'#30363d',
+  text:'#e6edf3', muted:'#7d8590', accent:'#3b82f6', accentDim:'#1d4ed8',
+  green:'#3fb950', greenDim:'#238636', red:'#f85149', yellow:'#d29922', white:'#f0f6fc',
+};
+
+/* ── API helpers ────────────────────────────────── */
+async function apiFetch(path, opts={}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+/* ── WebSocket log hook ─────────────────────────── */
+function useLogSocket(onMessage, onStageChange, onApprovalRequired, onFinished) {
+  const ws = useRef(null);
+  const connect = useCallback(() => {
+    if (ws.current && ws.current.readyState < 2) return;
+    const sock = new WebSocket(`${WS}/ws/pipeline`);
+    sock.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      if (data.type === 'log')              onMessage(data.message);
+      if (data.type === 'stage_changed')    onStageChange(data.stage);
+      if (data.type === 'approval_required') onApprovalRequired(data.stage);
+      if (data.type === 'finished')         onFinished(data.message);
+      if (data.type === 'preview_ready')    {}  // handled separately
+    };
+    sock.onerror = () => onMessage('[WS] Connection error — is the backend running?');
+    ws.current = sock;
+  }, []);
+  useEffect(() => { connect(); return () => ws.current?.close(); }, []);
+  return { reconnect: connect };
+}
+
+/* ── Primitives ─────────────────────────────────── */
+function Card({ children, style, pad=16 }) {
+  return <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:12, padding:pad, ...style }}>{children}</div>;
+}
+function SectionTitle({ children }) {
+  return <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', color:C.muted, marginBottom:12 }}>{children}</div>;
+}
+function PillBadge({ label, status }) {
+  const color = { ok:C.green, warn:C.yellow, err:C.red }[status] || C.muted;
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:6, background:C.surface2, border:`1px solid ${C.border}`, borderRadius:999, padding:'5px 12px', fontSize:12 }}>
+      <span style={{ width:7, height:7, borderRadius:'50%', background:color, boxShadow:status==='ok'?`0 0 6px ${color}88`:'none', flexShrink:0 }} />
+      <span style={{ color:C.text, fontWeight:500 }}>{label}</span>
+    </div>
+  );
+}
+function FieldInput({ label, type='text', value, onChange, placeholder, disabled, mono }) {
+  return (
+    <div style={{ marginBottom:12 }}>
+      {label && <div style={{ fontSize:12, color:C.muted, marginBottom:5, fontWeight:500 }}>{label}</div>}
+      <input type={type} value={value} onChange={e=>onChange?.(e.target.value)} placeholder={placeholder} disabled={disabled}
+        style={{ width:'100%', background:C.surface2, border:`1px solid ${C.border}`, borderRadius:8, padding:'9px 12px', fontSize:13, color:disabled?C.muted:C.text, outline:'none', fontFamily: mono?'JetBrains Mono, monospace':'Inter,sans-serif', transition:'border .15s' }}
+        onFocus={e=>{ if(!disabled) e.target.style.borderColor=C.accent; }}
+        onBlur={e=>{ e.target.style.borderColor=C.border; }} />
+    </div>
+  );
+}
+function FieldSelect({ label, value, onChange, options, disabled }) {
+  return (
+    <div style={{ marginBottom:12 }}>
+      {label && <div style={{ fontSize:12, color:C.muted, marginBottom:5, fontWeight:500 }}>{label}</div>}
+      <select value={value} onChange={e=>onChange?.(e.target.value)} disabled={disabled}
+        style={{ width:'100%', background:C.surface2, border:`1px solid ${C.border}`, borderRadius:8, padding:'9px 12px', fontSize:13, color:disabled?C.muted:C.text, outline:'none', fontFamily:'Inter,sans-serif', cursor:'pointer', appearance:'none', backgroundImage:`url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%237d8590' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat:'no-repeat', backgroundPosition:'right 12px center' }}>
+        {options.map(o=><option key={o} style={{background:C.surface2}}>{o}</option>)}
+      </select>
+    </div>
+  );
+}
+function ActionBtn({ children, onClick, disabled, loading, variant='primary', style }) {
+  const [hov, setHov] = useState(false);
+  const v = { primary:{bg:C.accent,hover:C.accentDim,text:'#fff'}, ghost:{bg:'transparent',hover:C.surface2,text:C.text,border:C.border}, danger:{bg:'transparent',hover:'#3d1a1a',text:C.red,border:C.red+'66'}, success:{bg:C.greenDim,hover:'#1a4d2a',text:'#fff'} }[variant]||{bg:C.accent,hover:C.accentDim,text:'#fff'};
+  return (
+    <button onClick={onClick} disabled={disabled||loading} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ background:disabled||loading?'#21262d':hov?v.hover:v.bg, color:disabled||loading?C.muted:v.text, border:v.border?`1px solid ${disabled?C.border:v.border}`:'1px solid transparent', borderRadius:8, padding:'9px 16px', fontSize:13, fontWeight:500, cursor:disabled||loading?'not-allowed':'pointer', fontFamily:'Inter,sans-serif', transition:'all .15s', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:6, justifyContent:'center', ...style }}>
+      {loading && <span style={{ width:12, height:12, border:'2px solid currentColor', borderTopColor:'transparent', borderRadius:'50%', display:'inline-block', animation:'spin .7s linear infinite' }} />}
+      {children}
+    </button>
+  );
+}
+
+/* ── Sidebar ─────────────────────────────────────── */
+const NAV = [{ id:'project',label:'Project',icon:'⬡'},{ id:'settings',label:'Settings',icon:'◈'},{ id:'connections',label:'Connect',icon:'✦'}];
+function Sidebar({ nav, setNav }) {
+  return (
+    <div style={{ width:64, background:C.surface, borderRight:`1px solid ${C.border}`, display:'flex', flexDirection:'column', alignItems:'center', padding:'16px 0', gap:4, flexShrink:0 }}>
+      <div style={{ fontSize:20, marginBottom:20, color:C.accent }}>▶</div>
+      {NAV.map(n=>(
+        <button key={n.id} onClick={()=>setNav(n.id)} title={n.label}
+          style={{ width:44, height:44, borderRadius:10, border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2, transition:'all .15s', background:nav===n.id?C.accent+'22':'transparent', color:nav===n.id?C.accent:C.muted }}>
+          <span style={{ fontSize:16 }}>{n.icon}</span>
+          <span style={{ fontSize:9, fontWeight:600, letterSpacing:'.04em' }}>{n.label}</span>
+        </button>
+      ))}
+      <div style={{ flex:1 }} />
+      <div style={{ width:32, height:32, borderRadius:'50%', background:`${C.accent}22`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, color:C.accent, fontWeight:700 }}>A</div>
+    </div>
+  );
+}
+
+/* ── Pipeline Stepper ────────────────────────────── */
+function PipelineStepper({ currentStageIdx, runState }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center' }}>
+      {STAGES.map((s,i) => {
+        const done = i < currentStageIdx || (runState==='complete');
+        const active = i === currentStageIdx && runState==='running';
+        return (
+          <React.Fragment key={s.id}>
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, minWidth:80 }}>
+              <div style={{ width:36, height:36, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, transition:'all .3s',
+                background:done?C.green:active?C.accent:C.surface2, color:done||active?'#fff':C.muted,
+                border:`2px solid ${done?C.green:active?C.accent:C.border}`, boxShadow:active?`0 0 12px ${C.accent}66`:'none' }}>
+                {done?'✓':s.icon}
+              </div>
+              <span style={{ fontSize:11, fontWeight:active?600:400, color:active?C.text:done?C.green:C.muted }}>{s.label}</span>
+            </div>
+            {i<STAGES.length-1 && <div style={{ flex:1, height:2, background:i<currentStageIdx?C.green:C.border, transition:'background .4s', marginBottom:18 }} />}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── Project Panel ────────────────────────────────── */
+function ProjectPanel({ runState, setRunState, currentStageIdx, setCurrentStageIdx, logs, setLogs, onApproval, approvalStage, setApprovalStage }) {
+  const [storyType, setStoryType]   = useState('');
+  const [charBrief, setCharBrief]   = useState('');
+  const [concept, setConcept]       = useState('');
+  const [exportFolder, setExportFolder] = useState('~/Videos/AutoCreator/exports');
+  const [previewContent, setPreviewContent] = useState('');
+  const [loading, setLoading]       = useState(false);
+  const logRef = useRef(null);
+
+  // scroll logs to bottom
+  useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [logs]);
+
+  // WebSocket wiring
+  useLogSocket(
+    (msg) => setLogs(l => l + '\n' + msg),
+    (stage) => {
+      const idx = STAGE_IDS.indexOf(stage);
+      if (idx >= 0) setCurrentStageIdx(idx);
+      if (stage === 'script') setPreviewContent('');
+    },
+    (stage) => { setRunState('waiting'); setApprovalStage(stage); },
+    (msg)   => { setRunState('idle');    setLogs(l => l + '\n' + msg); }
+  );
+
+  async function startProject() {
+    if (!concept.trim()) return;
+    setLoading(true);
+    try {
+      await apiFetch('/project/start', { method:'POST', body:{
+        source_prompt: concept,
+        story_type:    storyType,
+        character_brief: charBrief,
+        export_folder: exportFolder,
+        source_mode:   'scene',
+      }});
+      setRunState('running');
+      setLogs('[INFO] Project started…');
+      setPreviewContent('');
+    } catch(e) {
+      setLogs(`[ERROR] Could not start project: ${e.message}\n[HINT]  Is the FastAPI backend running on ${API}?`);
+    } finally { setLoading(false); }
+  }
+
+  async function stopProject() {
+    await apiFetch('/project/stop', { method:'POST' }).catch(()=>{});
+    setRunState('idle');
+  }
+  async function pauseProject()  { await apiFetch('/project/pause',      { method:'POST' }).catch(()=>{}); }
+  async function continueProject(){ await apiFetch('/project/continue',  { method:'POST' }).catch(()=>{}); setRunState('running'); setApprovalStage(''); }
+  async function regenerateStep() { await apiFetch('/project/regenerate',{ method:'POST' }).catch(()=>{}); }
+  async function openFolder()     { await apiFetch('/project/open-folder',{ method:'POST' }).catch(()=>{}); }
+
+  const isIdle    = runState === 'idle';
+  const isRunning = runState === 'running';
+  const isWaiting = runState === 'waiting';
+
+  return (
+    <div style={{ flex:1, display:'flex', flexDirection:'column', gap:16, overflowY:'auto' }}>
+      {/* Pipeline */}
+      <Card>
+        <SectionTitle>Pipeline</SectionTitle>
+        <PipelineStepper currentStageIdx={currentStageIdx} runState={runState} />
+        {isRunning && (
+          <div style={{ marginTop:14, display:'flex', alignItems:'center', gap:8, color:C.muted, fontSize:12 }}>
+            <span style={{ width:8, height:8, borderRadius:'50%', background:C.accent, display:'inline-block', animation:'pulse 1s infinite' }} />
+            Running — {STAGES[currentStageIdx]?.label}…
+          </div>
+        )}
+        {isWaiting && (
+          <div style={{ marginTop:14, padding:'10px 14px', background:`${C.yellow}18`, border:`1px solid ${C.yellow}44`, borderRadius:8, fontSize:12, color:C.yellow }}>
+            ⏸ Waiting for approval at: <strong>{approvalStage}</strong>
+          </div>
+        )}
+      </Card>
+
+      {/* Input */}
+      <Card>
+        <SectionTitle>Scene Concept</SectionTitle>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+          <FieldInput label="Story Type" placeholder="cartoon beef, brainrot facts…" value={storyType} onChange={setStoryType} disabled={isRunning} />
+          <FieldInput label="Character Notes" placeholder="smug chemist, detective…" value={charBrief} onChange={setCharBrief} disabled={isRunning} />
+        </div>
+        <div style={{ marginBottom:12 }}>
+          <div style={{ fontSize:12, color:C.muted, marginBottom:5, fontWeight:500 }}>Concept</div>
+          <textarea value={concept} onChange={e=>setConcept(e.target.value)} disabled={isRunning}
+            placeholder="Describe the story or skit concept here…"
+            style={{ width:'100%', background:C.surface2, border:`1px solid ${C.border}`, borderRadius:8, padding:'10px 12px', fontSize:13, color:isRunning?C.muted:C.text, outline:'none', fontFamily:'Inter,sans-serif', resize:'vertical', minHeight:80, maxHeight:160 }}
+            onFocus={e=>{ if(!isRunning) e.target.style.borderColor=C.accent; }}
+            onBlur={e=>e.target.style.borderColor=C.border} />
+        </div>
+        <div style={{ marginBottom:14 }}>
+          <div style={{ fontSize:12, color:C.muted, marginBottom:5, fontWeight:500 }}>Export Folder</div>
+          <div style={{ display:'flex', gap:8 }}>
+            <input value={exportFolder} onChange={e=>setExportFolder(e.target.value)} style={{ flex:1, background:C.surface2, border:`1px solid ${C.border}`, borderRadius:8, padding:'9px 12px', fontSize:12, color:C.muted, outline:'none', fontFamily:'JetBrains Mono, monospace' }} />
+            <ActionBtn variant="ghost">Browse</ActionBtn>
+          </div>
+        </div>
+        <div style={{ display:'flex', gap:8 }}>
+          <ActionBtn onClick={startProject} disabled={isRunning||isWaiting} loading={loading} style={{ flex:2 }}>
+            {isRunning ? '⬡ Running…' : '▶ Start Project'}
+          </ActionBtn>
+          <ActionBtn variant="ghost" disabled={isRunning||isWaiting} style={{ flex:1 }}>Open Existing</ActionBtn>
+          <ActionBtn variant="ghost" disabled={!isRunning} onClick={pauseProject} style={{ flex:1 }}>Pause</ActionBtn>
+          <ActionBtn variant="danger" disabled={isIdle} onClick={stopProject} style={{ flex:1 }}>Stop</ActionBtn>
+        </div>
+        {isWaiting && (
+          <div style={{ display:'flex', gap:8, marginTop:8 }}>
+            <ActionBtn variant="success" onClick={continueProject} style={{ flex:1 }}>✓ Continue</ActionBtn>
+            <ActionBtn variant="ghost"   onClick={regenerateStep}  style={{ flex:1 }}>↺ Regenerate Step</ActionBtn>
+          </div>
+        )}
+      </Card>
+
+      {/* Preview + Logs */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+        <Card>
+          <SectionTitle>Preview</SectionTitle>
+          {previewContent ? (
+            <pre style={{ fontFamily:'JetBrains Mono, monospace', fontSize:12, color:C.muted, lineHeight:1.7, whiteSpace:'pre-wrap', margin:0, maxHeight:190, overflowY:'auto' }}>{previewContent}</pre>
+          ) : (
+            <div style={{ height:130, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', color:C.muted, fontSize:12, gap:8, border:`1px dashed ${C.border}`, borderRadius:8 }}>
+              <span style={{ fontSize:28, opacity:.3 }}>▶</span>
+              <span>Preview will appear here</span>
+            </div>
+          )}
+          {previewContent && (
+            <div style={{ display:'flex', gap:8, marginTop:10 }}>
+              <ActionBtn variant="ghost" style={{ flex:1, fontSize:12 }}>▶ Play</ActionBtn>
+              <ActionBtn variant="ghost" onClick={openFolder} style={{ flex:1, fontSize:12 }}>↗ Open Folder</ActionBtn>
+            </div>
+          )}
+        </Card>
+        <Card>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+            <SectionTitle style={{margin:0}}>Console</SectionTitle>
+            <button onClick={()=>setLogs('')} style={{ fontSize:11, color:C.muted, background:'none', border:'none', cursor:'pointer' }}>Clear</button>
+          </div>
+          <div ref={logRef} style={{ fontFamily:'JetBrains Mono, monospace', fontSize:11.5, color:C.muted, lineHeight:1.8, height:190, overflowY:'auto', whiteSpace:'pre-wrap' }}>
+            {logs || `[INFO] Ready. Connect backend on ${API}`}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/* ── Settings Panel ──────────────────────────────── */
+function SettingsPanel() {
+  const [saved, setSaved]     = useState(false);
+  const [quality, setQuality] = useState('High');
+  const [fps, setFps]         = useState('30');
+  const [length, setLength]   = useState('30');
+  const [platform, setPlatform] = useState('YouTube Shorts');
+  const [visProvider, setVisProvider] = useState('Veo + Stock');
+  const [charMode, setCharMode]       = useState('Auto');
+  const [music, setMusic]             = useState('Suspense');
+  const [refImg, setRefImg]           = useState('');
+
+  useEffect(() => {
+    apiFetch('/settings').then(d => {
+      if (d.video) {
+        setQuality(d.video.output_quality || 'High');
+        setFps(String(d.video.fps || 30));
+        setLength(String(d.video.length_target || 30));
+        setPlatform(d.video.platform || 'YouTube Shorts');
+        setVisProvider(d.video.visual_provider || 'Veo + Stock');
+        setMusic(d.video.music_style || 'Suspense');
+      }
+      if (d.veo_character_mode) setCharMode(d.veo_character_mode);
+      if (d.veo_reference_image_path) setRefImg(d.veo_reference_image_path);
+    }).catch(()=>{});
+  }, []);
+
+  async function save() {
+    await apiFetch('/settings', { method:'POST', body:{
+      video:{ output_quality:quality, fps:parseInt(fps), length_target:parseInt(length), platform, visual_provider:visProvider, music_style:music },
+      veo_character_mode: charMode, veo_reference_image_path: refImg,
+    }}).catch(()=>{});
+    setSaved(true);
+    setTimeout(()=>setSaved(false), 2000);
+  }
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:16, overflowY:'auto' }}>
+      <Card>
+        <SectionTitle>Output</SectionTitle>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0 12px' }}>
+          <FieldSelect label="Quality" value={quality} onChange={setQuality} options={["High","Medium","Low"]} />
+          <FieldSelect label="FPS" value={fps} onChange={setFps} options={["24","30","60"]} />
+          <FieldSelect label="Length (s)" value={length} onChange={setLength} options={["20","30","45","60"]} />
+          <FieldSelect label="Platform" value={platform} onChange={setPlatform} options={PLATFORMS} />
+        </div>
+      </Card>
+      <Card>
+        <SectionTitle>Visuals</SectionTitle>
+        <FieldSelect label="Visual Provider" value={visProvider} onChange={setVisProvider} options={VISUAL_PROVIDERS} />
+        <FieldSelect label="Character Mode" value={charMode} onChange={setCharMode} options={CHARACTER_MODES} />
+        <FieldSelect label="Music Style" value={music} onChange={setMusic} options={MUSIC_STYLES} />
+        <div style={{ marginBottom:12 }}>
+          <div style={{ fontSize:12, color:C.muted, marginBottom:5, fontWeight:500 }}>Veo Reference Image</div>
+          <div style={{ display:'flex', gap:8 }}>
+            <input value={refImg} onChange={e=>setRefImg(e.target.value)} placeholder="Optional character/reference image…"
+              style={{ flex:1, background:C.surface2, border:`1px solid ${C.border}`, borderRadius:8, padding:'9px 12px', fontSize:13, color:C.text, outline:'none', fontFamily:'Inter,sans-serif' }} />
+            <ActionBtn variant="ghost" style={{fontSize:12}}>Browse</ActionBtn>
+            <ActionBtn variant="ghost" onClick={()=>setRefImg('')} style={{fontSize:12}}>✕</ActionBtn>
+          </div>
+        </div>
+      </Card>
+      <Card>
+        <SectionTitle>Veo Model</SectionTitle>
+        <span style={{ fontFamily:'JetBrains Mono, monospace', fontSize:12, color:C.accent }}>veo-3.1-lite-generate-preview</span>
+        <div style={{ marginTop:10, padding:'10px 12px', background:C.surface2, borderRadius:8, fontSize:12, color:C.muted, lineHeight:1.6 }}>
+          Projects auto-check the generated video library and reuse exact clip matches before generating new Veo clips.
+        </div>
+      </Card>
+      <ActionBtn onClick={save} style={{ width:'100%' }} variant={saved?'success':'primary'}>
+        {saved ? '✓ Saved' : 'Save Defaults'}
+      </ActionBtn>
+    </div>
+  );
+}
+
+/* ── Connections Panel ───────────────────────────── */
+function ConnectionsPanel() {
+  const [geminiKey, setGeminiKey]       = useState('');
+  const [geminiModel, setGeminiModel]   = useState('Gemini 2.5 Flash');
+  const [geminiStatus, setGeminiStatus] = useState('idle');
+  const [narration, setNarration]       = useState('Edge TTS');
+  const [edgeVoice, setEdgeVoice]       = useState('en-US-GuyNeural');
+  const [edgeSpeed, setEdgeSpeed]       = useState(5);
+  const [edgeVol, setEdgeVol]           = useState(0);
+  const [elevenKey, setElevenKey]       = useState('');
+  const [elevenVId, setElevenVId]       = useState('');
+  const [pexelsKey, setPexelsKey]       = useState('');
+  const [pixabayKey, setPixabayKey]     = useState('');
+  const [statuses, setStatuses]         = useState({});
+  const [exportFolder, setExportFolder] = useState('');
+  const [genVideoFolder, setGenVideoFolder] = useState('');
+  const [loading, setLoading]           = useState({});
+
+  useEffect(() => {
+    apiFetch('/settings').then(d => {
+      if (d.gemini_api_key) setGeminiKey(d.gemini_api_key);
+      if (d.gemini_model_label) setGeminiModel(d.gemini_model_label);
+      if (d.narration_engine) setNarration(d.narration_engine);
+      if (d.edge_tts_voice) setEdgeVoice(d.edge_tts_voice);
+      if (d.edge_tts_rate !== undefined) setEdgeSpeed(d.edge_tts_rate);
+      if (d.edge_tts_volume !== undefined) setEdgeVol(d.edge_tts_volume);
+      if (d.elevenlabs_api_key) setElevenKey(d.elevenlabs_api_key);
+      if (d.elevenlabs_voice_id) setElevenVId(d.elevenlabs_voice_id);
+      if (d.pexels_api_key) setPexelsKey(d.pexels_api_key);
+      if (d.pixabay_api_key) setPixabayKey(d.pixabay_api_key);
+      if (d.export_folder) setExportFolder(d.export_folder);
+      if (d.generated_video_folder) setGenVideoFolder(d.generated_video_folder);
+    }).catch(()=>{});
+  }, []);
+
+  async function test(key, endpoint, body) {
+    setLoading(l=>({...l,[key]:true}));
+    try {
+      const r = await apiFetch(endpoint, { method:'POST', body });
+      setStatuses(s=>({...s,[key]:{ ok:r.success, msg:r.message }}));
+    } catch(e) {
+      setStatuses(s=>({...s,[key]:{ ok:false, msg:e.message }}));
+    } finally { setLoading(l=>({...l,[key]:false})); }
+  }
+
+  async function saveAll() {
+    await apiFetch('/settings', { method:'POST', body:{
+      gemini_api_key:geminiKey, gemini_model_label:geminiModel,
+      narration_engine:narration, edge_tts_voice:edgeVoice, edge_tts_rate:edgeSpeed, edge_tts_volume:edgeVol,
+      elevenlabs_api_key:elevenKey, elevenlabs_voice_id:elevenVId,
+      pexels_api_key:pexelsKey, pixabay_api_key:pixabayKey,
+      export_folder:exportFolder, generated_video_folder:genVideoFolder,
+    }}).catch(()=>{});
+  }
+
+  function StatusLine({ id }) {
+    const s = statuses[id];
+    if (!s) return null;
+    return <div style={{ fontSize:12, color:s.ok?C.green:C.red, marginTop:6, fontFamily:'JetBrains Mono, monospace' }}>{s.ok?'✓':'✗'} {s.msg}</div>;
+  }
+
+  const edgeOk  = narration==='Edge TTS';
+  const elevenOk= narration==='ElevenLabs';
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:16, overflowY:'auto' }}>
+      {/* Gemini */}
+      <Card>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+          <SectionTitle style={{margin:0}}>Gemini / Google AI</SectionTitle>
+          {statuses.gemini && <span style={{ fontSize:12, color:statuses.gemini.ok?C.green:C.red }}>{statuses.gemini.ok?'● Connected':'● Failed'}</span>}
+        </div>
+        <FieldInput label="API Key" type="password" value={geminiKey} onChange={setGeminiKey} placeholder="AIza…" />
+        <FieldSelect label="Model" value={geminiModel} onChange={setGeminiModel} options={GEMINI_MODELS} />
+        <div style={{ display:'flex', gap:8 }}>
+          <ActionBtn loading={loading.gemini} onClick={()=>test('gemini','/connections/test-gemini',{api_key:geminiKey, model:geminiModel})} style={{flex:1}}>Test Connection</ActionBtn>
+          <ActionBtn variant="ghost" onClick={saveAll} style={{flex:1}}>Save</ActionBtn>
+        </div>
+        <StatusLine id="gemini" />
+      </Card>
+
+      {/* Narration */}
+      <Card>
+        <SectionTitle>Narration</SectionTitle>
+        <FieldSelect label="Engine" value={narration} onChange={setNarration} options={NARRATION_ENGINES} />
+        {edgeOk && <>
+          <FieldSelect label="Edge Voice" value={edgeVoice} onChange={setEdgeVoice} options={EDGE_VOICES} />
+          <div style={{ marginBottom:12 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}>
+              <span style={{ fontSize:12, color:C.muted, fontWeight:500 }}>Speed</span>
+              <span style={{ fontSize:12, color:C.accent, fontFamily:'JetBrains Mono, monospace' }}>{edgeSpeed>0?'+':''}{edgeSpeed}%</span>
+            </div>
+            <input type="range" min={-20} max={20} value={edgeSpeed} onChange={e=>setEdgeSpeed(+e.target.value)} style={{ width:'100%', accentColor:C.accent }} />
+          </div>
+          <div style={{ marginBottom:12 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}>
+              <span style={{ fontSize:12, color:C.muted, fontWeight:500 }}>Volume</span>
+              <span style={{ fontSize:12, color:C.accent, fontFamily:'JetBrains Mono, monospace' }}>{edgeVol>0?'+':''}{edgeVol}%</span>
+            </div>
+            <input type="range" min={-10} max={10} value={edgeVol} onChange={e=>setEdgeVol(+e.target.value)} style={{ width:'100%', accentColor:C.accent }} />
+          </div>
+          <div style={{ display:'flex', gap:8 }}>
+            <ActionBtn loading={loading.edge} onClick={()=>test('edge','/connections/test-edge',{voice:edgeVoice,rate:edgeSpeed,volume:edgeVol})} style={{flex:1}}>Test Voice</ActionBtn>
+            <ActionBtn variant="ghost" onClick={saveAll} style={{flex:1}}>Save</ActionBtn>
+          </div>
+          <StatusLine id="edge" />
+        </>}
+        {elevenOk && <>
+          <FieldInput label="ElevenLabs API Key" type="password" value={elevenKey} onChange={setElevenKey} />
+          <FieldInput label="Voice ID" value={elevenVId} onChange={setElevenVId} placeholder="abc123…" />
+          <div style={{ display:'flex', gap:8 }}>
+            <ActionBtn loading={loading.eleven} onClick={()=>test('eleven','/connections/test-elevenlabs',{api_key:elevenKey,voice_id:elevenVId})} style={{flex:1}}>Test Connection</ActionBtn>
+            <ActionBtn variant="ghost" onClick={saveAll} style={{flex:1}}>Save</ActionBtn>
+          </div>
+          <StatusLine id="eleven" />
+        </>}
+        {narration==='Disabled' && <div style={{ fontSize:12, color:C.muted, padding:'10px 12px', background:C.surface2, borderRadius:8 }}>Narration disabled. No voice will be added.</div>}
+      </Card>
+
+      {/* Stock */}
+      <Card>
+        <SectionTitle>Stock Footage</SectionTitle>
+        <FieldInput label="Pexels API Key" type="password" value={pexelsKey} onChange={setPexelsKey} placeholder="Optional" />
+        <div style={{ display:'flex', gap:8, marginBottom:8 }}>
+          <ActionBtn loading={loading.pexels} onClick={()=>test('pexels','/connections/test-pexels',{api_key:pexelsKey})} style={{flex:1,fontSize:12}}>Test Pexels</ActionBtn>
+          <ActionBtn variant="ghost" onClick={saveAll} style={{flex:1,fontSize:12}}>Save</ActionBtn>
+        </div>
+        <StatusLine id="pexels" />
+        <div style={{ height:12 }} />
+        <FieldInput label="Pixabay API Key" type="password" value={pixabayKey} onChange={setPixabayKey} placeholder="Optional" />
+        <div style={{ display:'flex', gap:8 }}>
+          <ActionBtn loading={loading.pixabay} onClick={()=>test('pixabay','/connections/test-pixabay',{api_key:pixabayKey})} style={{flex:1,fontSize:12}}>Test Pixabay</ActionBtn>
+          <ActionBtn variant="ghost" onClick={saveAll} style={{flex:1,fontSize:12}}>Save</ActionBtn>
+        </div>
+        <StatusLine id="pixabay" />
+      </Card>
+
+      {/* Export */}
+      <Card>
+        <SectionTitle>Export</SectionTitle>
+        <FieldInput label="Default Save Folder" value={exportFolder} onChange={setExportFolder} mono />
+        <FieldInput label="Generated Video Library" value={genVideoFolder} onChange={setGenVideoFolder} mono placeholder="~/Videos/AutoCreator/generated" />
+        <div style={{ display:'flex', gap:8 }}>
+          <ActionBtn variant="ghost" style={{flex:1}} onClick={()=>apiFetch('/connections/open-deevid-browser',{method:'POST'}).catch(()=>{})}>Open DeeVid Browser</ActionBtn>
+          <ActionBtn onClick={saveAll} style={{flex:1}}>Save All</ActionBtn>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ── Top Bar ─────────────────────────────────────── */
+function TopBar({ runState, currentStageIdx, backendOnline }) {
+  return (
+    <div style={{ height:52, background:C.surface, borderBottom:`1px solid ${C.border}`, display:'flex', alignItems:'center', padding:'0 20px', gap:12, flexShrink:0 }}>
+      <span style={{ fontWeight:700, fontSize:15, color:C.white, marginRight:8, letterSpacing:'-.01em' }}>Automated Video Creator</span>
+      <div style={{ width:1, height:20, background:C.border, marginRight:4 }} />
+      <PillBadge label={backendOnline ? 'Backend Online' : 'Backend Offline'} status={backendOnline?'ok':'err'} />
+      <PillBadge label="Edge TTS" status="ok" />
+      <PillBadge label="Visual APIs" status="warn" />
+      <PillBadge label="FFmpeg" status="ok" />
+      <div style={{ flex:1 }} />
+      {runState==='running' && (
+        <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:C.accent }}>
+          <span style={{ width:8, height:8, borderRadius:'50%', background:C.accent, display:'inline-block', animation:'blink 1s step-end infinite' }} />
+          Stage {currentStageIdx+1}/{STAGES.length} — {STAGES[currentStageIdx]?.label}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Root App ─────────────────────────────────────── */
+function App() {
+  const [nav, setNav]                   = useState('project');
+  const [runState, setRunState]         = useState('idle');
+  const [currentStageIdx, setCurrentStageIdx] = useState(0);
+  const [logs, setLogs]                 = useState('');
+  const [approvalStage, setApprovalStage] = useState('');
+  const [backendOnline, setBackendOnline] = useState(false);
+
+  useEffect(() => {
+    apiFetch('/health').then(()=>setBackendOnline(true)).catch(()=>setBackendOnline(false));
+    const t = setInterval(()=>apiFetch('/health').then(()=>setBackendOnline(true)).catch(()=>setBackendOnline(false)), 5000);
+    return ()=>clearInterval(t);
+  }, []);
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', height:'100vh', overflow:'hidden' }}>
+      <TopBar runState={runState} currentStageIdx={currentStageIdx} backendOnline={backendOnline} />
+      <div style={{ display:'flex', flex:1, overflow:'hidden' }}>
+        <Sidebar nav={nav} setNav={setNav} />
+        <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
+          <div style={{ flex:1, padding:20, overflowY:'auto' }}>
+            {nav==='project'     && <ProjectPanel runState={runState} setRunState={setRunState} currentStageIdx={currentStageIdx} setCurrentStageIdx={setCurrentStageIdx} logs={logs} setLogs={setLogs} approvalStage={approvalStage} setApprovalStage={setApprovalStage} />}
+            {nav==='settings'    && <SettingsPanel />}
+            {nav==='connections' && <ConnectionsPanel />}
+          </div>
+          {/* Right rail (project view only) */}
+          {nav==='project' && (
+            <div style={{ width:280, borderLeft:`1px solid ${C.border}`, padding:16, overflowY:'auto', background:C.surface, flexShrink:0 }}>
+              <SectionTitle>Quick Settings</SectionTitle>
+              <FieldSelect label="Quality" value="High" onChange={()=>{}} options={["High","Medium","Low"]} />
+              <FieldSelect label="Platform" value="YouTube Shorts" onChange={()=>{}} options={PLATFORMS} />
+              <FieldSelect label="Length (s)" value="30" onChange={()=>{}} options={["20","30","45","60"]} />
+              <FieldSelect label="Visual Provider" value="Veo + Stock" onChange={()=>{}} options={VISUAL_PROVIDERS} />
+              <div style={{ height:1, background:C.border, margin:'12px 0' }} />
+              <SectionTitle>Output Info</SectionTitle>
+              {[['Resolution','1080 × 1920'],['Narrator','Edge TTS'],['Model','Gemini 2.5 Flash'],['Veo','veo-3.1-lite']].map(([k,v])=>(
+                <div key={k} style={{ display:'flex', justifyContent:'space-between', marginBottom:8, fontSize:12 }}>
+                  <span style={{ color:C.muted }}>{k}</span>
+                  <span style={{ color:C.text, fontFamily:'JetBrains Mono, monospace', fontSize:11 }}>{v}</span>
+                </div>
+              ))}
+              <div style={{ height:1, background:C.border, margin:'12px 0' }} />
+              <div style={{ padding:'10px 12px', background:`${backendOnline?C.green:C.red}18`, border:`1px solid ${backendOnline?C.green:C.red}44`, borderRadius:8, fontSize:12, color:backendOnline?C.green:C.red }}>
+                {backendOnline ? `● Backend running on :8765` : `● Backend offline\nStart: uvicorn app.api:app --port 8765`}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

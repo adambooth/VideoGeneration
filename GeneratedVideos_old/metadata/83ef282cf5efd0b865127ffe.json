@@ -1,0 +1,14 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. close-up of hands sifting through old case files and newspaper clippings, a vintage microphone in the background. medium shot, quick cuts. sketchbook style, ink lines, cross-hatching. Avoid: no modern technology, no smiling faces.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "no modern technology, no smiling faces",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Sketchbook Storytelling",
+  "scene_purpose": "details",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\sketchbook-storytelling-details\\sketchbook-storytelling-details_83ef282cf5efd0b865127ffe.jpg",
+  "clip_key": "83ef282cf5efd0b865127ffe",
+  "clip_name": "Sketchbook Storytelling details",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\sketchbook-storytelling-details\\sketchbook-storytelling-details_83ef282cf5efd0b865127ffe.mp4"
+}

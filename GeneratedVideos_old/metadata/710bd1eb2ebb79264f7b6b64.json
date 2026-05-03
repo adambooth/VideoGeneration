@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Low-angle shot of the Uploaded Character (Jimmy Neutron) confronting a shadowy figure (back to camera) by overflowing bins. Jimmy's face is contorted in a mix of anger and desperation, his hands are gesturing wildly. Steam rises from a nearby drain. The shadowy figure remains still, creating tension. The camera pushes in on Jimmy's face.. The character looks into the camera and says, \"My brain's doing somersaults, bruv. I'm seeing double, triple, quad-vision. Yo, is that him? Finally! My man's moving slow, though. What's the hold-up? I'm about to go full 'Ultra Lord' on this situation if I don't get my fix.\" with natural expressive delivery and realistic lip synchronization. The quoted words are the exact spoken dialogue.. Low-angle shot, push-in on character's face. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Highlight the dramatic tension and Jimmy's aggressive impatience.. Use the provided reference character in every scene. Preserve the same face, silhouette, outfit language, and visual identity across the whole sequence. The character should appear to speak or present the story to camera in each scene with expressive mouth movement, eye-line, and presenter energy.. Avoid: friendly interaction, open space, no tension, clear view of other character.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "friendly interaction, open space, no tension, clear view of other character",
+  "reference_image_signature": "7cb6c4580b8ce75a7a7b0359",
+  "reference_image_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\Projects\\project-20260427-142857\\continuity_frames\\scene_02_last.jpg",
+  "character_mode": "Speaking / Presenter",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "confrontation",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-confrontation\\reference-driven-confrontation_710bd1eb2ebb79264f7b6b64.jpg",
+  "clip_key": "710bd1eb2ebb79264f7b6b64",
+  "clip_name": "Reference-Driven confrontation",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-confrontation\\reference-driven-confrontation_710bd1eb2ebb79264f7b6b64.mp4"
+}

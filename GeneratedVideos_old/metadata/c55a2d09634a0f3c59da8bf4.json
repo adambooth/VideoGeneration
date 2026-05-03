@@ -1,0 +1,14 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. animated DNA helix morphing into a map with a pin dropping on a specific location, a faint glow emanating from the screen. dynamic, animated transitions. fluid animation, subtle color shifts. Avoid: no explicit crime scene violence.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "no explicit crime scene violence",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Sketchbook Storytelling",
+  "scene_purpose": "mystery/conflict",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\sketchbook-storytelling-mystery-conflict\\sketchbook-storytelling-mystery-conflict_c55a2d09634a0f3c59da8bf4.jpg",
+  "clip_key": "c55a2d09634a0f3c59da8bf4",
+  "clip_name": "Sketchbook Storytelling mystery/conflict",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\sketchbook-storytelling-mystery-conflict\\sketchbook-storytelling-mystery-conflict_c55a2d09634a0f3c59da8bf4.mp4"
+}

@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Close-up on the Uploaded Character (Jimmy Neutron), drenched in rain, eyes wide and darting nervously. He's aggressively scratching his neck and arms, sweat beading on his forehead under the harsh glow of a flickering neon sign. His mouth is slightly agape, muttering to himself. The camera is handheld, slightly shaky, pushing in slowly.. The character looks into the camera and says, \"Yo, my head's moving mad, bruv. Need that pure Brain Blast, on my life. These opps got me vexed, fam. Sweating like I ran a marathon, no cap.\" with natural expressive delivery and realistic lip synchronization. The quoted words are the exact spoken dialogue.. Close-up, handheld, slow push-in. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Maintain brainrot aesthetic, gritty urban feel, focus on character's distress.. Use the provided reference character in every scene. Preserve the same face, silhouette, outfit language, and visual identity across the whole sequence. The character should appear to speak or present the story to camera in each scene with expressive mouth movement, eye-line, and presenter energy.. Avoid: clean, calm, well-lit, happy, relaxed, bright colors.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "clean, calm, well-lit, happy, relaxed, bright colors",
+  "reference_image_signature": "b6f808d15a98e25b91562e80",
+  "reference_image_path": "C:/Users/adam_/Desktop/AutomatedVideoCreator/Characters/JimmyNeutron/GangsterJimmy.png",
+  "character_mode": "Speaking / Presenter",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "hook",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_ebc1f5479054fe23acd687e7.jpg",
+  "clip_key": "ebc1f5479054fe23acd687e7",
+  "clip_name": "Reference-Driven hook",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_ebc1f5479054fe23acd687e7.mp4"
+}

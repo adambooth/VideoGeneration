@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1680, initial-scale=1.0" />
+  <title>Automated Video Creator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #1c2128;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #7d8590;
+      --accent: #3b82f6;
+      --accent-hover: #1d4ed8;
+      --green: #3fb950;
+      --red: #f85149;
+      --yellow: #d29922;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, sans-serif; min-width: 1680px; height: 100%; }
+    body { overflow: hidden; }
+    input, textarea, select, button { font: inherit; color-scheme: dark; }
+    .mono { font-family: "JetBrains Mono", monospace; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #161b22; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 999px; }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+    @keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.25); opacity: .55; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useEffect, useMemo, useRef, useState } = React;
+
+    const BASE_URL = `${window.location.protocol}//${window.location.host}`;
+    const API = BASE_URL;
+    const COLORS = {
+      bg: "#0d1117",
+      surface: "#161b22",
+      surface2: "#1c2128",
+      border: "#30363d",
+      text: "#e6edf3",
+      muted: "#7d8590",
+      accent: "#3b82f6",
+      accentHover: "#1d4ed8",
+      green: "#3fb950",
+      red: "#f85149",
+      yellow: "#d29922",
+    };
+
+    const STAGES = [
+      { value: "Extract Content", label: "Extract", icon: "1" },
+      { value: "Generate Script", label: "Script", icon: "2" },
+      { value: "Generate Voiceover", label: "Voice", icon: "3" },
+      { value: "Generate Visual Plan", label: "Visuals", icon: "4" },
+      { value: "Render Final Video", label: "Render", icon: "5" },
+      { value: "Complete", label: "Complete", icon: "6" },
+    ];
+
+    const DEFAULT_SETTINGS = {
+      gemini_api_key: "",
+      gemini_model_label: "Gemini 2.5 Flash",
+      gemini_model: "gemini-2.5-flash",
+      gemini_custom_model: "",
+      narration_engine: "Edge TTS",
+      edge_tts_voice: "en-US-GuyNeural",
+      edge_tts_rate: 5,
+      edge_tts_volume: 0,
+      elevenlabs_api_key: "",
+      elevenlabs_voice_id: "",
+      elevenlabs_voice_id_a: "",
+      elevenlabs_voice_id_b: "",
+      serpapi_api_key: "",
+      pexels_api_key: "",
+      pixabay_api_key: "",
+      export_folder: "",
+      generated_video_folder: "",
+      wan2gp_root_dir: "E:\\wan2gp\\Wan2GP",
+      wan2gp_env_name: "wan2gp",
+      wan2gp_template_path: "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\wanGPJSONSettings.json",
+      flux_template_path: "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\wanGPJSONFluxKlein9BSettings.json",
+      wan2gp_continuity_mode: "Same Start Image",
+      veo_reference_image_path: "",
+      veo_character_mode: "Solo",
+      veo_continuity_mode: "Chain Last Frame",
+      veo_visual_style: "Sketchbook Storytelling",
+      veo_planning_mode: "Auto",
+      veo_model: "veo-3.1-lite-generate-preview",
+      video: {
+        output_quality: "High",
+        fps: 30,
+        length_target: 30,
+        platform: "YouTube Shorts",
+        visual_provider: "Veo + Stock",
+        music_style: "Suspense",
+      },
+    };
+
+    const MODEL_OPTIONS = ["Gemini 2.5 Flash", "Gemini 2.5 Flash Lite", "Custom"];
+    const NARRATION_ENGINES = ["Edge TTS", "ElevenLabs", "Disabled"];
+    const EDGE_VOICES = ["en-US-GuyNeural", "en-US-ChristopherNeural", "en-US-DavisNeural", "en-US-AriaNeural", "en-GB-RyanNeural", "en-GB-ThomasNeural", "en-GB-SoniaNeural"];
+    const QUALITY_OPTIONS = ["High", "Medium", "Low"];
+    const FPS_OPTIONS = ["24", "30", "60"];
+    const LENGTH_OPTIONS = ["20", "30", "45", "60"];
+    const PLATFORM_OPTIONS = ["YouTube Shorts", "TikTok", "Instagram Reels"];
+    const VISUAL_PROVIDERS = ["Veo + Stock", "DeeVid Automation", "Stock Footage", "Hybrid", "AI Images", "Local Fallback"];
+    const CHARACTER_MODES = ["Solo", "Two Character Conversation"];
+    const CONTINUITY_MODES = ["Chain Last Frame", "Off"];
+    const WAN_CONTINUITY_MODES = ["Same Start Image", "Same Start + End Image", "Chain Last Frame"];
+    const MUSIC_STYLES = ["Suspense", "Ambient", "Corporate", "None"];
+    const VISUAL_STYLES = ["Sketchbook Storytelling", "2D Cartoon Storytelling", "Sketchbook Noir", "Stylized Documentary", "Clean Explainer Illustration"];
+    const PLANNING_MODES = ["Auto", "Story Mode", "List / Topic Mode"];
+    const WAN_IMAGE_MODES = ["Single Start Image", "Storyboard Image Sequence"];
+    const WAN_VIDEO_COUNT_OPTIONS = ["1", "2", "3", "4"];
+    const WAN_CLIP_LENGTH_OPTIONS = ["5", "10", "15", "20", "30"];
+    const WAN_CHARACTER_COUNT_OPTIONS = ["1", "2"];
+    const KLEIN_IMAGE_COUNT_OPTIONS = ["1", "2", "3", "4"];
+    const CHARACTER_COUNT_OPTIONS = ["1", "2", "3+"];
+    const DEFAULT_OUTPUT_IMAGES_DIR = "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\OutputImages";
+    const NAV_ITEMS_OLD = [
+      { id: "prompting", label: "Prompting", icon: "▤" },
+      { id: "wan2gp", label: "WAN2GP", icon: "▣" },
+      { id: "klein9b", label: "Klein9B", icon: "◆" },
+      { id: "settings", label: "Settings", icon: "◈" },
+      { id: "connections", label: "Connections", icon: "◎" },
+    ];
+    const NAV_ITEMS = [
+      { id: "auto", label: "Auto", icon: "A" },
+      { id: "prompting", label: "Prompting", icon: "P" },
+      { id: "wan2gp", label: "WAN2GP", icon: "W" },
+      { id: "klein9b", label: "Klein9B", icon: "K" },
+      { id: "imagefinder", label: "Image Finder", icon: "I" },
+      { id: "guide", label: "Guide", icon: "?" },
+      { id: "settings", label: "Settings", icon: "S" },
+      { id: "connections", label: "Connections", icon: "C" },
+    ];
+    const MODE_HELP = {
+      "Auto": "Automatically picks the best structure for the source.",
+      "Story Mode": "Best for stories, mysteries, explainers, and single-narrative shorts.",
+      "List / Topic Mode": "Best for facts, ranked lists, broad topics, and presenter-style breakdowns.",
+    };
+    const STYLE_HELP = {
+      "Sketchbook Storytelling": "Stylized illustrated scenes with cinematic motion and strong narrative framing.",
+      "2D Cartoon Storytelling": "Cleaner and punchier cartoon-style storytelling suited to presenter-led viral shorts.",
+      "Sketchbook Noir": "Moodier inked frames with darker contrast and detective-style atmosphere.",
+      "Stylized Documentary": "Illustrated documentary tone with more grounded visuals and restrained motion.",
+      "Clean Explainer Illustration": "Simple, readable, high-clarity illustration style for educational topics.",
+    };
+
+    async function api(path, options = {}) {
+      const response = await fetch(`${API}${path}`, {
+        headers: { "Content-Type": "application/json" },
+        ...options,
+        body: options.body ? JSON.stringify(options.body) : undefined,
+      });
+      const contentType = response.headers.get("content-type") || "";
+      const payload = contentType.includes("application/json") ? await response.json() : { message: await response.text() };
+      if (!response.ok) {
+        throw new Error(payload.detail || payload.message || `${response.status} ${response.statusText}`);
+      }
+      return payload;
+    }
+
+    function mergeSettings(base, patch) {
+      const next = { ...base };
+      Object.entries(patch || {}).forEach(([key, value]) => {
+        if (value && typeof value === "object" && !Array.isArray(value) && typeof next[key] === "object" && next[key] !== null) {
+          next[key] = mergeSettings(next[key], value);
+        } else {
+          next[key] = value;
+        }
+      });
+      return next;
+    }
+
+    function Card({ children, style, pad = 16 }) {
+      return <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: 12, padding: pad, boxShadow: "var(--shadow)", ...style }}>{children}</div>;
+    }
+
+    function SectionTitle({ children, style }) {
+      return <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: COLORS.muted, fontWeight: 600, marginBottom: 12, ...style }}>{children}</div>;
+    }
+
+    function PillBadge({ label, status }) {
+      const color = status === "ok" ? COLORS.green : status === "warn" ? COLORS.yellow : COLORS.red;
+      return (
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 999, padding: "6px 12px", border: `1px solid ${COLORS.border}`, background: COLORS.surface2, fontSize: 12, fontWeight: 500 }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: color, boxShadow: `0 0 10px ${color}66`, animation: status === "ok" ? "blink 1.4s ease-in-out infinite" : "none" }} />
+          <span>{label}</span>
+        </div>
+      );
+    }
+
+    function FieldLabel({ children, title }) {
+      return <div title={title} style={{ fontSize: 12, color: COLORS.muted, marginBottom: 6, fontWeight: 500 }}>{children}</div>;
+    }
+
+    function textInputStyle(mono = false) {
+      return {
+        width: "100%",
+        background: COLORS.surface2,
+        color: COLORS.text,
+        border: `1px solid ${COLORS.border}`,
+        borderRadius: 8,
+        padding: "10px 12px",
+        outline: "none",
+        fontFamily: mono ? '"JetBrains Mono", monospace' : "Inter, sans-serif",
+        transition: "border-color .15s ease",
+      };
+    }
+
+    function FieldInput({ label, title, value, onChange, placeholder, type = "text", mono = false }) {
+      return <div style={{ width: "100%" }}>{label ? <FieldLabel title={title}>{label}</FieldLabel> : null}<input type={type} value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={textInputStyle(mono)} /></div>;
+    }
+
+    function FieldTextArea({ label, value, onChange, placeholder, rows = 5 }) {
+      return <div style={{ width: "100%" }}><FieldLabel>{label}</FieldLabel><textarea rows={rows} value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={{ ...textInputStyle(false), resize: "vertical", minHeight: 108 }} /></div>;
+    }
+
+    function FieldSelect({ label, title, value, onChange, options }) {
+      return (
+        <div style={{ width: "100%" }}>
+          {label ? <FieldLabel title={title}>{label}</FieldLabel> : null}
+          <select value={value} onChange={(e) => onChange(e.target.value)} style={{ ...textInputStyle(false), appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%237d8590' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center" }}>
+            {options.map((option) => <option key={option} value={option}>{option}</option>)}
+          </select>
+        </div>
+      );
+    }
+
+    function ActionBtn({ children, onClick, disabled, loading, variant = "primary", style }) {
+      const palette = {
+        primary: { bg: COLORS.accent, text: "#fff", border: "transparent" },
+        ghost: { bg: "transparent", text: COLORS.text, border: COLORS.border },
+        danger: { bg: "transparent", text: COLORS.red, border: "rgba(248,81,73,.45)" },
+        success: { bg: COLORS.green, text: "#fff", border: "transparent" },
+      }[variant];
+      return (
+        <button disabled={disabled || loading} onClick={onClick} style={{ borderRadius: 8, border: `1px solid ${palette.border}`, background: disabled ? "#21262d" : palette.bg, color: disabled ? COLORS.muted : palette.text, cursor: disabled ? "not-allowed" : "pointer", padding: "10px 16px", fontWeight: 600, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, ...style }}>
+          {loading ? <span style={{ width: 12, height: 12, borderRadius: "50%", border: "2px solid currentColor", borderTopColor: "transparent", animation: "spin .75s linear infinite" }} /> : null}
+          {children}
+        </button>
+      );
+    }
+
+    function Slider({ label, value, min, max, onChange }) {
+      return (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+            <FieldLabel>{label}</FieldLabel>
+            <span className="mono" style={{ fontSize: 12, color: COLORS.accent }}>{value > 0 ? `+${value}` : value}%</span>
+          </div>
+          <input type="range" min={min} max={max} value={value} onChange={(e) => onChange(Number(e.target.value))} style={{ width: "100%", accentColor: COLORS.accent }} />
+        </div>
+      );
+    }
+
+    function StatusLine({ status }) {
+      if (!status) return null;
+      return <div className="mono" style={{ fontSize: 12, color: status.success ? COLORS.green : COLORS.red, marginTop: 8, whiteSpace: "pre-wrap" }}>{status.success ? "✓" : "✗"} {status.message}</div>;
+    }
+
+    function Sidebar({ current, onChange }) {
+      return (
+        <div style={{ width: 64, borderRight: `1px solid ${COLORS.border}`, background: COLORS.surface, display: "flex", flexDirection: "column", alignItems: "center", padding: "14px 0", gap: 8, flexShrink: 0 }}>
+          {NAV_ITEMS.map((item) => {
+            const active = current === item.id;
+            return (
+              <button key={item.id} onClick={() => onChange(item.id)} style={{ width: 48, minHeight: 56, borderRadius: 12, border: `1px solid ${active ? `${COLORS.accent}66` : "transparent"}`, background: active ? "rgba(59,130,246,.12)" : "transparent", color: active ? COLORS.accent : COLORS.muted, cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, fontSize: 10, fontWeight: 600 }}>
+                <span style={{ fontSize: 15 }}>{item.icon}</span><span>{item.label}</span>
+              </button>
+            );
+          })}
+          <div style={{ flex: 1 }} />
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(59,130,246,.18)", border: `1px solid rgba(59,130,246,.38)`, display: "flex", alignItems: "center", justifyContent: "center", color: COLORS.accent, fontWeight: 700 }}>A</div>
+        </div>
+      );
+    }
+
+    function Stepper({ stage }) {
+      const currentIndex = Math.max(0, STAGES.findIndex((s) => s.value === stage));
+      return (
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {STAGES.map((item, index) => {
+            const done = index < currentIndex || stage === "Complete";
+            const active = index === currentIndex && stage !== "Complete";
+            return (
+              <React.Fragment key={item.value}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, minWidth: 72 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: "50%", border: `2px solid ${done ? COLORS.green : active ? COLORS.accent : COLORS.border}`, background: done ? COLORS.green : active ? "rgba(59,130,246,.18)" : COLORS.surface2, display: "flex", alignItems: "center", justifyContent: "center", color: done || active ? "#fff" : COLORS.muted, boxShadow: active ? `0 0 18px rgba(59,130,246,.28)` : "none", fontWeight: 700 }}>
+                    {done ? "✓" : item.icon}
+                  </div>
+                  <div style={{ fontSize: 12, color: active ? COLORS.text : done ? COLORS.green : COLORS.muted }}>{item.label}</div>
+                </div>
+                {index < STAGES.length - 1 ? <div style={{ flex: 1, height: 2, background: done ? COLORS.green : COLORS.border, marginBottom: 24 }} /> : null}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function LocalWanStepper({ stage, runState, approvalStage }) {
+      const items = [
+        { key: "concept", label: "Concept", icon: "1" },
+        { key: "prompts", label: "Flux Prompts", icon: "2" },
+        { key: "images", label: "Flux Images", icon: "3" },
+        { key: "clips", label: "WAN Clips", icon: "4" },
+        { key: "complete", label: "Complete", icon: "5" },
+      ];
+      let currentIndex = 0;
+      const stageText = String(stage || "");
+      const approvalText = String(approvalStage || "");
+      if (runState === "complete" || stageText === "Complete") {
+        currentIndex = 4;
+      } else if (stageText.startsWith("WAN2GP Clip") || approvalText.startsWith("Approve WAN2GP")) {
+        currentIndex = 3;
+      } else if (stageText.startsWith("Flux Storyboard Image") || approvalText.startsWith("Approve Flux Storyboard Image")) {
+        currentIndex = 2;
+      } else if (approvalText.startsWith("Approve Flux Storyboard Prompts")) {
+        currentIndex = 1;
+      } else if (stageText.startsWith("Flux Storyboard")) {
+        currentIndex = 1;
+      }
+      return (
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {items.map((item, index) => {
+            const done = index < currentIndex || runState === "complete";
+            const active = index === currentIndex && runState !== "complete";
+            return (
+              <React.Fragment key={item.key}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, minWidth: 72 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: "50%", border: `2px solid ${done ? COLORS.green : active ? COLORS.accent : COLORS.border}`, background: done ? COLORS.green : active ? "rgba(59,130,246,.18)" : COLORS.surface2, display: "flex", alignItems: "center", justifyContent: "center", color: done || active ? "#fff" : COLORS.muted, boxShadow: active ? `0 0 18px rgba(59,130,246,.28)` : "none", fontWeight: 700 }}>
+                    {done ? "✓" : item.icon}
+                  </div>
+                  <div style={{ fontSize: 12, color: active ? COLORS.text : done ? COLORS.green : COLORS.muted }}>{item.label}</div>
+                </div>
+                {index < items.length - 1 ? <div style={{ flex: 1, height: 2, background: done ? COLORS.green : COLORS.border, marginBottom: 24 }} /> : null}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function PreviewPane({ preview }) {
+      const kind = preview?.kind || "text";
+      const content = preview?.content || "Preview will appear here.";
+      if (kind === "video" && content) {
+        return <video controls style={{ width: "100%", height: 280, borderRadius: 10, background: "#000", objectFit: "contain" }} src={`${API}/file?path=${encodeURIComponent(content)}`} />;
+      }
+      if (kind === "audio" && content) {
+        return <div style={{ display: "grid", placeItems: "center", minHeight: 280, textAlign: "center", color: COLORS.muted }}><div><div style={{ fontSize: 48, marginBottom: 12 }}>♫</div><audio controls style={{ width: 380 }} src={`${API}/file?path=${encodeURIComponent(content)}`} /><div className="mono" style={{ marginTop: 12, fontSize: 11 }}>{content}</div></div></div>;
+      }
+      return <pre className="mono" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflowWrap: "anywhere", margin: 0, minHeight: 0, height: "100%", maxHeight: "100%", overflowY: "auto", overflowX: "hidden", color: kind === "script" ? COLORS.text : COLORS.muted, lineHeight: 1.65, fontSize: 12, width: "100%" }}>{content}</pre>;
+    }
+
+    function RightRail({ settings, health, runState, stage, onQuickUpdate, onOpenSettings, onOpenConnections, onOpenFolder }) {
+      return (
+        <div style={{ width: 280, flexShrink: 0, borderLeft: `1px solid ${COLORS.border}`, background: COLORS.surface, padding: 16, overflowY: "auto", display: "flex", flexDirection: "column", gap: 16 }}>
+
+
+          <Card><SectionTitle>Backend Status</SectionTitle><div style={{ padding: "12px 14px", borderRadius: 10, border: `1px solid ${health.ok ? "rgba(63,185,80,.42)" : "rgba(248,81,73,.42)"}`, background: health.ok ? "rgba(63,185,80,.08)" : "rgba(248,81,73,.08)", color: health.ok ? COLORS.green : COLORS.red, fontSize: 12, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{health.ok ? `● Backend online\nCurrent stage: ${stage}\nRun state: ${runState}` : "● Backend offline\nStart command: uvicorn app.api:app --port 8765"}</div></Card>
+          <Card><SectionTitle>Character Setup</SectionTitle><div style={{ display: "grid", gap: 12 }}>
+            <FieldSelect label="Character Mode" value={settings.veo_character_mode || "Solo"} onChange={(value) => onQuickUpdate({ veo_character_mode: value })} options={CHARACTER_MODES} />
+            <FieldSelect label="WAN Continuity" value={settings.wan2gp_continuity_mode || "Same Start Image"} onChange={(value) => onQuickUpdate({ wan2gp_continuity_mode: value })} options={WAN_CONTINUITY_MODES} />
+            <ActionBtn variant="ghost" onClick={onOpenSettings}>Open Full Settings</ActionBtn>
+            <ActionBtn variant="ghost" onClick={onOpenConnections}>Open Connections</ActionBtn>
+          </div></Card>
+        </div>
+      );
+    }
+
+    function SettingsPage({ settings, onChange, onSave }) {
+      return (
+        <div style={{ overflowY: "auto", height: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
+          <Card><SectionTitle>WAN2GP</SectionTitle><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <FieldInput label="Wan2GP Root" value={settings.wan2gp_root_dir || ""} onChange={(value) => onChange({ wan2gp_root_dir: value })} mono />
+            <FieldInput label="Conda Env" value={settings.wan2gp_env_name || ""} onChange={(value) => onChange({ wan2gp_env_name: value })} />
+            <div style={{ gridColumn: "1 / span 2" }}>
+              <FieldInput label="Template JSON" value={settings.wan2gp_template_path || ""} onChange={(value) => onChange({ wan2gp_template_path: value })} mono />
+            </div>
+            <div style={{ gridColumn: "1 / span 2" }}>
+              <FieldInput label="Flux Storyboard Template JSON" value={settings.flux_template_path || ""} onChange={(value) => onChange({ flux_template_path: value })} mono />
+            </div>
+          </div></Card>
+          <div><ActionBtn onClick={onSave}>Save Settings</ActionBtn></div>
+        </div>
+      );
+    }
+
+    function GuidePage() {
+      return (
+        <div style={{ overflowY: "auto", height: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
+          <Card>
+            <SectionTitle>Settings Guide</SectionTitle>
+            <div style={{ color: COLORS.muted, fontSize: 13, lineHeight: 1.75 }}>
+              This page is a plain-English reference for the main browser settings and how the WAN workflow behaves.
+            </div>
+          </Card>
+
+          <Card>
+            <SectionTitle>WAN Start Images</SectionTitle>
+            <div style={{ display: "grid", gap: 12, color: COLORS.text, fontSize: 13, lineHeight: 1.75 }}>
+              <div>
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>1 Video</div>
+                <div style={{ color: COLORS.muted }}>Choose one start image for the clip.</div>
+              </div>
+              <div>
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>2 To 4 Videos</div>
+                <div style={{ color: COLORS.muted }}>Choose one separate start image for each video. Video 1 uses image 1, Video 2 uses image 2, Video 3 uses image 3, and Video 4 uses image 4.</div>
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <SectionTitle>WAN Continuity</SectionTitle>
+            <div style={{ display: "grid", gap: 12, color: COLORS.text, fontSize: 13, lineHeight: 1.75 }}>
+              <div>
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>Same Start Image</div>
+                <div style={{ color: COLORS.muted }}>Best for testing separate prompt variations from one image. Each clip starts from the same uploaded image.</div>
+              </div>
+              <div>
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>Same Start + End Image</div>
+                <div style={{ color: COLORS.muted }}>Uses the same uploaded image as both the start and end image for the clip. This makes the most sense when you are generating one clip from one image.</div>
+              </div>
+              <div>
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>Chain Last Frame</div>
+                <div style={{ color: COLORS.muted }}>Clip 2 starts from the last frame of clip 1, clip 3 starts from the last frame of clip 2, and so on. This is for chaining clips together from one starting point.</div>
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <SectionTitle>Multi-Video Rule</SectionTitle>
+            <div style={{ color: COLORS.muted, fontSize: 13, lineHeight: 1.75, display: "grid", gap: 10 }}>
+              <div>If Amount of Videos is 2 or more, the WAN page expects one start image for each video before the batch can start.</div>
+              <div>This keeps the setup simpler and avoids mixing separate storyboard modes into the same page.</div>
+            </div>
+          </Card>
+
+          <Card>
+            <SectionTitle>Per-Video Length</SectionTitle>
+            <div style={{ color: COLORS.muted, fontSize: 13, lineHeight: 1.75, display: "grid", gap: 10 }}>
+              <div>When Amount of Videos is greater than 1, each video block in the WAN2GP page has its own length selector in the browser.</div>
+              <div>Example: Video 1 can be 10 seconds, Video 2 can be 15 seconds, Video 3 can be 20 seconds, and Video 4 can be 30 seconds.</div>
+            </div>
+          </Card>
+
+          <Card>
+            <SectionTitle>Helpful Rule Of Thumb</SectionTitle>
+            <div style={{ color: COLORS.muted, fontSize: 13, lineHeight: 1.75, display: "grid", gap: 10 }}>
+              <div>Use one start image when you are making one clip.</div>
+              <div>Use one start image per video when you are making a batch of separate clips.</div>
+              <div>Use Chain Last Frame when you want the clips to feel like one continuous visual progression.</div>
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    function ImageFinderPage({ settings, imageFinderForm, setImageFinderForm, setFluxForm, onUseInKlein }) {
+      const query = String(imageFinderForm.query || "").trim();
+      const results = Array.isArray(imageFinderForm.results) ? imageFinderForm.results : [];
+      const selectedIndex = Number.isInteger(imageFinderForm.selected_index) ? imageFinderForm.selected_index : -1;
+      const selectedResult = selectedIndex >= 0 && selectedIndex < results.length ? results[selectedIndex] : null;
+      const [loading, setLoading] = useState(false);
+      const [importingId, setImportingId] = useState("");
+
+      async function runSearch() {
+        if (!query) return;
+        setLoading(true);
+        try {
+          const response = await api("/image-finder/search", {
+            method: "POST",
+            body: {
+              settings,
+              query,
+            },
+          });
+          setImageFinderForm((prev) => ({
+            ...prev,
+            results: Array.isArray(response.results) ? response.results : [],
+            last_error: "",
+            selected_index: -1,
+            selected_query: query,
+          }));
+          return Array.isArray(response.results) ? response.results : [];
+        } catch (error) {
+          setImageFinderForm((prev) => ({
+            ...prev,
+            results: [],
+            last_error: error.message,
+            selected_index: -1,
+            selected_query: query,
+          }));
+          return [];
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      async function autoSelectImage() {
+        const searchResults = results.length && String(imageFinderForm.selected_query || "").trim() === query ? results : await runSearch();
+        if (!searchResults.length) return;
+        setImageFinderForm((prev) => ({
+          ...prev,
+          selected_index: 0,
+          selected_query: query,
+        }));
+      }
+
+      function redoSelection() {
+        if (!results.length) return;
+        const nextIndex = selectedIndex >= 0 ? (selectedIndex + 1) % results.length : 0;
+        setImageFinderForm((prev) => ({
+          ...prev,
+          selected_index: nextIndex,
+          selected_query: query,
+        }));
+      }
+
+      async function useInKlein(result) {
+        setImportingId(result.id || result.asset_url || "");
+        try {
+          const response = await api("/image-finder/use-in-klein", {
+            method: "POST",
+            body: {
+              image_urls: [result.asset_url, result.fallback_url, result.thumbnail_url].filter(Boolean),
+              filename_hint: result.filename_hint || "reference.jpg",
+            },
+          });
+          setFluxForm((prev) => ({
+            ...prev,
+            reference_image_path: response.path || prev.reference_image_path,
+          }));
+          onUseInKlein();
+        } catch (error) {
+          alert("Error: " + error.message);
+        } finally {
+          setImportingId("");
+        }
+      }
+
+      return (
+        <div style={{ overflowY: "auto", height: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
+          <Card>
+            <SectionTitle>Image Finder</SectionTitle>
+            <div style={{ color: COLORS.muted, fontSize: 13, lineHeight: 1.75, marginBottom: 14 }}>
+              Search inside the app and send the chosen image straight into Klein9B as the reference image.
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, marginBottom: 14 }}>
+              <input
+                className="mono"
+                value={imageFinderForm.query || ""}
+                onChange={(e) => setImageFinderForm((prev) => ({ ...prev, query: e.target.value, selected_index: -1 }))}
+                style={textInputStyle(true)}
+                placeholder="Find me an image of Dobby from Harry Potter..."
+              />
+              <ActionBtn loading={loading} onClick={runSearch} disabled={!query || loading}>Search Images</ActionBtn>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
+              <ActionBtn variant="ghost" loading={loading} onClick={autoSelectImage} disabled={!query || loading}>Auto Select Image</ActionBtn>
+              <ActionBtn variant="ghost" onClick={redoSelection} disabled={!selectedResult || !results.length || loading}>Redo Choice</ActionBtn>
+            </div>
+            <div style={{ fontSize: 12, color: COLORS.muted }}>
+              Uses `SerpAPI` first for better character and fandom results, with your stock-image APIs only as fallback.
+            </div>
+          </Card>
+
+          {selectedResult ? <Card>
+            <SectionTitle>Chosen Image</SectionTitle>
+            <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: 16, alignItems: "start" }}>
+              <div style={{ border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", background: COLORS.surface2 }}>
+                <img src={selectedResult.thumbnail_url} alt={selectedResult.credit || selectedResult.provider || "Chosen reference"} style={{ width: "100%", aspectRatio: "3 / 4", objectFit: "cover", display: "block" }} />
+              </div>
+              <div style={{ display: "grid", gap: 10 }}>
+                <div style={{ fontSize: 12, color: COLORS.muted }}>This is the image auto-selected for your current query. Approve it to send it straight into Klein9B, or hit redo to try another result.</div>
+                <div style={{ fontSize: 12, fontWeight: 600 }}>{selectedResult.provider || "Image"}</div>
+                <div style={{ fontSize: 12, color: COLORS.muted, lineHeight: 1.7 }}>{selectedResult.credit || "No credit available"}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 4 }}>
+                  <ActionBtn
+                    disabled={importingId === (selectedResult.id || selectedResult.asset_url || "")}
+                    loading={importingId === (selectedResult.id || selectedResult.asset_url || "")}
+                    onClick={() => useInKlein(selectedResult)}
+                  >
+                    Approve And Use In Klein9B
+                  </ActionBtn>
+                  <ActionBtn variant="ghost" onClick={redoSelection} disabled={loading || !results.length}>Redo Choice</ActionBtn>
+                </div>
+              </div>
+            </div>
+          </Card> : null}
+
+          <Card>
+            <SectionTitle>Results</SectionTitle>
+            {String(imageFinderForm.last_error || "").trim() ? <div style={{ color: COLORS.red, fontSize: 12, marginBottom: 12 }}>{imageFinderForm.last_error}</div> : null}
+            {!results.length ? <div style={{ color: COLORS.muted, fontSize: 13, lineHeight: 1.75 }}>No results yet. Search for a character, prop, or reference look, then choose `Use In Klein9B` on the image you want.</div> : null}
+            {results.length ? <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
+              {results.map((result, index) => (
+                <div key={result.id || `${result.provider}-${index}`} style={{ border: `1px solid ${selectedIndex === index ? COLORS.accent : COLORS.border}`, borderRadius: 12, overflow: "hidden", background: COLORS.surface2, boxShadow: selectedIndex === index ? "0 0 0 1px rgba(59,130,246,.35)" : "none" }}>
+                  <div style={{ aspectRatio: "3 / 4", background: COLORS.bg }}>
+                    <img src={result.thumbnail_url} alt={result.credit || result.provider || "Reference result"} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  </div>
+                  <div style={{ padding: 12, display: "grid", gap: 8 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{result.provider || "Image"}</div>
+                      <div className="mono" style={{ fontSize: 10, color: COLORS.muted }}>{result.id || `result-${index + 1}`}</div>
+                    </div>
+                    <div style={{ fontSize: 11, color: COLORS.muted, lineHeight: 1.6 }}>{result.credit || "No credit available"}</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      <ActionBtn variant="ghost" onClick={() => setImageFinderForm((prev) => ({ ...prev, selected_index: index, selected_query: query }))}>Pick This One</ActionBtn>
+                      <ActionBtn
+                        disabled={importingId === (result.id || result.asset_url || "")}
+                        loading={importingId === (result.id || result.asset_url || "")}
+                        onClick={() => useInKlein(result)}
+                      >
+                        Use In Klein9B
+                      </ActionBtn>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div> : null}
+          </Card>
+        </div>
+      );
+    }
+
+    function AutoPage({ autoForm, setAutoForm, runState, stage, onRunAuto }) {
+      const running = runState === "running";
+      const waiting = runState === "waiting";
+      return (
+        <div style={{ overflowY: "auto", height: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
+          <Card>
+            <SectionTitle>Auto</SectionTitle>
+            <div style={{ color: COLORS.muted, fontSize: 13, lineHeight: 1.75, marginBottom: 14 }}>
+              Type one search and the app will try to do the full chain automatically: find a reference image, send it to Klein9B, generate a new funny styled image, build a rude comedic context/vibe, generate a 30-second prompt pack, rewrite it for WAN, and start WAN2GP.
+            </div>
+            <FieldInput
+              label="Search"
+              value={autoForm.query || ""}
+              onChange={(value) => setAutoForm((prev) => ({ ...prev, query: value }))}
+              placeholder="E.g. dodgy cartoon gangster pig in a lowrider"
+              mono
+            />
+            <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+              <ActionBtn loading={running} disabled={!String(autoForm.query || "").trim() || running || waiting} onClick={() => onRunAuto(autoForm)}>Run Auto Pipeline</ActionBtn>
+            </div>
+          </Card>
+
+          <Card>
+            <SectionTitle>Status</SectionTitle>
+            <div style={{ color: COLORS.text, fontSize: 13, lineHeight: 1.75 }}>
+              {autoForm.status_text || (running ? `Running: ${stage}` : "Ready. Auto mode currently generates one 30-second video." )}
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    function ConnectionsPage({ settings, onChange, onSave, statuses, setStatuses, onBrowseExportFolder, onBrowseGeneratedFolder }) {
+      const [loading, setLoading] = useState({});
+      const twoCharacterMode = (settings.veo_character_mode || "Solo") === "Two Character Conversation";
+      async function test(name, path, body) {
+        setLoading((prev) => ({ ...prev, [name]: true }));
+        try {
+          const response = await api(path, { method: "POST", body });
+          setStatuses((prev) => ({ ...prev, [name]: { success: !!response.success, message: response.message || "OK", extra: response } }));
+        } catch (error) {
+          setStatuses((prev) => ({ ...prev, [name]: { success: false, message: error.message } }));
+        } finally {
+          setLoading((prev) => ({ ...prev, [name]: false }));
+        }
+      }
+      return (
+        <div style={{ overflowY: "auto", height: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
+          <Card><SectionTitle>Gemini / Google AI</SectionTitle>
+            <FieldInput label="API Key" type="password" value={settings.gemini_api_key} onChange={(value) => onChange({ gemini_api_key: value })} placeholder="AIza..." />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <FieldSelect label="Model" value={settings.gemini_model_label} onChange={(value) => onChange({ gemini_model_label: value })} options={MODEL_OPTIONS} />
+              {settings.gemini_model_label === "Custom" ? <FieldInput label="Custom Model" value={settings.gemini_custom_model} onChange={(value) => onChange({ gemini_custom_model: value })} placeholder="gemini-2.5-flash" mono /> : <div />}
+            </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <ActionBtn loading={loading.gemini} onClick={() => test("gemini", "/connections/test-gemini", { api_key: settings.gemini_api_key, model: settings.gemini_custom_model || settings.gemini_model })}>Test Connection</ActionBtn>
+              <ActionBtn variant="ghost" onClick={onSave}>Save</ActionBtn>
+            </div>
+            <StatusLine status={statuses.gemini} />
+          </Card>
+
+          <Card><SectionTitle>Image Search</SectionTitle>
+            <FieldInput label="SerpAPI Key" type="password" value={settings.serpapi_api_key || ""} onChange={(value) => onChange({ serpapi_api_key: value })} placeholder="Your SerpAPI key..." />
+            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <ActionBtn loading={loading.serpapi} onClick={() => test("serpapi", "/connections/test-serpapi", { api_key: settings.serpapi_api_key || "" })}>Test Connection</ActionBtn>
+              <ActionBtn variant="ghost" onClick={onSave}>Save</ActionBtn>
+            </div>
+            <StatusLine status={statuses.serpapi} />
+            <div style={{ marginTop: 10, fontSize: 12, color: COLORS.muted, lineHeight: 1.7 }}>
+              SerpAPI is the recommended source for character and fandom image searches in the Image Finder tab.
+            </div>
+          </Card>
+
+          <Card><SectionTitle>Narration</SectionTitle><FieldSelect label="Engine" value={settings.narration_engine} onChange={(value) => onChange({ narration_engine: value })} options={NARRATION_ENGINES} />
+            {settings.narration_engine === "Edge TTS" ? <>
+              <FieldSelect label="Voice" value={settings.edge_tts_voice} onChange={(value) => onChange({ edge_tts_voice: value })} options={EDGE_VOICES} />
+              <Slider label="Speed" value={Number(settings.edge_tts_rate)} min={-20} max={20} onChange={(value) => onChange({ edge_tts_rate: value })} />
+              <div style={{ height: 12 }} />
+              <Slider label="Volume" value={Number(settings.edge_tts_volume)} min={-10} max={10} onChange={(value) => onChange({ edge_tts_volume: value })} />
+              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <ActionBtn loading={loading.edge} onClick={() => test("edge", "/connections/test-edge", { voice: settings.edge_tts_voice, rate: settings.edge_tts_rate, volume: settings.edge_tts_volume })}>Test Voice</ActionBtn>
+                <ActionBtn variant="ghost" onClick={onSave}>Save</ActionBtn>
+              </div><StatusLine status={statuses.edge} />
+            </> : null}
+            {settings.narration_engine === "ElevenLabs" ? <>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <FieldInput label="API Key" type="password" value={settings.elevenlabs_api_key} onChange={(value) => onChange({ elevenlabs_api_key: value })} />
+                {!twoCharacterMode ? <FieldInput label="Voice ID" value={settings.elevenlabs_voice_id} onChange={(value) => onChange({ elevenlabs_voice_id: value })} mono /> : <FieldInput label="Voice ID A" value={settings.elevenlabs_voice_id_a || ""} onChange={(value) => onChange({ elevenlabs_voice_id_a: value })} mono />}
+              </div>
+              {twoCharacterMode ? <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+                <FieldInput label="Voice ID B" value={settings.elevenlabs_voice_id_b || ""} onChange={(value) => onChange({ elevenlabs_voice_id_b: value })} mono />
+                <div />
+              </div> : null}
+              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <ActionBtn loading={loading.elevenlabs} onClick={async () => {
+                  if (!twoCharacterMode) {
+                    await test("elevenlabs", "/connections/test-elevenlabs", { api_key: settings.elevenlabs_api_key, voice_id: settings.elevenlabs_voice_id });
+                    return;
+                  }
+                  setLoading((prev) => ({ ...prev, elevenlabs: true }));
+                  try {
+                    const [voiceA, voiceB] = await Promise.all([
+                      api("/connections/test-elevenlabs", { method: "POST", body: { api_key: settings.elevenlabs_api_key, voice_id: settings.elevenlabs_voice_id_a } }),
+                      api("/connections/test-elevenlabs", { method: "POST", body: { api_key: settings.elevenlabs_api_key, voice_id: settings.elevenlabs_voice_id_b } }),
+                    ]);
+                    const success = !!voiceA.success && !!voiceB.success;
+                    const message = success ? "Voice ID A and Voice ID B connected." : `A: ${voiceA.message || "Unknown"} | B: ${voiceB.message || "Unknown"}`;
+                    setStatuses((prev) => ({ ...prev, elevenlabs: { success, message } }));
+                  } catch (error) {
+                    setStatuses((prev) => ({ ...prev, elevenlabs: { success: false, message: error.message } }));
+                  } finally {
+                    setLoading((prev) => ({ ...prev, elevenlabs: false }));
+                  }
+                }}>Test Connection</ActionBtn>
+                <ActionBtn variant="ghost" onClick={onSave}>Save</ActionBtn>
+              </div><StatusLine status={statuses.elevenlabs} />
+            </> : null}
+          </Card>
+
+          <Card><SectionTitle>Export</SectionTitle>
+            <FieldInput label="Save Folder" value={settings.export_folder} onChange={(value) => onChange({ export_folder: value })} mono />
+            <div style={{ marginTop: 8 }}><ActionBtn variant="ghost" onClick={onBrowseExportFolder}>Browse Save Folder</ActionBtn></div>
+            <div style={{ height: 12 }} />
+            <FieldInput label="Generated Video Library" value={settings.generated_video_folder} onChange={(value) => onChange({ generated_video_folder: value })} mono />
+            <div style={{ marginTop: 8 }}><ActionBtn variant="ghost" onClick={onBrowseGeneratedFolder}>Browse Video Library</ActionBtn></div>
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <ActionBtn variant="ghost" onClick={() => api("/project/open-folder", { method: "POST", body: { path: settings.generated_video_folder } }).catch(() => {})}>Open Video Library</ActionBtn>
+              <ActionBtn onClick={onSave}>Save All</ActionBtn>
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+
+
+    function Wan2GPPage(props) {
+      const { settings, wanForm, setWanForm, currentProject, runState, stage, approvalStage, preview, logs, onStartWan2gp, onStop, onContinue, onRegenerate, onBrowseImage, onBrowseExportFolder, clearLogs, health, onQuickSave, onOpenSettings, onOpenConnections } = props;
+      const running = runState === "running";
+      const waiting = runState === "waiting";
+      const videoCount = Math.max(1, Math.min(4, Number(wanForm.video_count) || 1));
+      const clipLengthSeconds = Number(wanForm.clip_length_seconds) || 15;
+      const clipLengths = Array.from({ length: videoCount }, (_, index) => {
+        const value = Array.isArray(wanForm.clip_length_seconds_items) ? Number(wanForm.clip_length_seconds_items[index]) : NaN;
+        return Number.isFinite(value) && value > 0 ? value : clipLengthSeconds;
+      });
+      const normalizedPromptItems = Array.isArray(wanForm.prompt_items) && wanForm.prompt_items.length ? wanForm.prompt_items : [""];
+      const validPromptLines = normalizedPromptItems.slice(0, videoCount).map((s) => String(s || "").trim()).filter(Boolean);
+      const startImages = Array.isArray(wanForm.image_paths) ? wanForm.image_paths : ["", "", "", ""];
+      const filledStartImages = startImages.slice(0, videoCount).map((path) => String(path || "").trim()).filter(Boolean);
+      const singleReady = videoCount === 1 && !!String(wanForm.image_path || "").trim();
+      const multiReady = videoCount > 1 && filledStartImages.length === videoCount;
+      const characterCount = String(wanForm.character_count || "2");
+      const twoCharacterMode = characterCount === "2";
+      const canRegenerateLocalStep = /^Approve Flux Storyboard/.test(approvalStage || "");
+      const stepText = useMemo(() => waiting ? `Waiting for approval at: ${approvalStage}` : running ? `Running: ${stage}` : runState === "complete" ? "Local batch completed." : runState === "error" ? "Local generation stopped with an error." : "Ready to generate local clips.", [waiting, approvalStage, running, runState, stage]);
+      const logRef = useRef(null);
+      const [nowTick, setNowTick] = useState(Date.now());
+      useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [logs]);
+      useEffect(() => {
+        if (!running) return;
+        const timer = setInterval(() => setNowTick(Date.now()), 1000);
+        return () => clearInterval(timer);
+      }, [running]);
+
+      function formatDuration(totalSeconds) {
+        const seconds = Math.max(0, Number(totalSeconds) || 0);
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        if (hours > 0) return `${hours}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+        return `${minutes}:${String(secs).padStart(2, "0")}`;
+      }
+
+      const localSourceMode = currentProject?.source_mode;
+      const startedAtRaw = localSourceMode === "wan2gp" || localSourceMode === "flux_storyboard" ? currentProject?.wan_started_at : "";
+      const completedAtRaw = localSourceMode === "wan2gp" || localSourceMode === "flux_storyboard" ? currentProject?.wan_completed_at : "";
+      const storedElapsed = localSourceMode === "wan2gp" || localSourceMode === "flux_storyboard" ? Number(currentProject?.wan_elapsed_seconds || 0) : 0;
+      const liveElapsedSeconds = useMemo(() => {
+        if (!startedAtRaw) return 0;
+        const started = Date.parse(startedAtRaw);
+        if (Number.isNaN(started)) return storedElapsed;
+        if (!running) return storedElapsed || Math.max(0, Math.floor((Date.now() - started) / 1000));
+        return Math.max(0, Math.floor((nowTick - started) / 1000));
+      }, [startedAtRaw, storedElapsed, running, nowTick]);
+
+      return (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 20, height: "100%" }}>
+          <div style={{ overflowY: "auto", paddingRight: 4, display: "flex", flexDirection: "column", gap: 16 }}>
+            <Card><SectionTitle>Pipeline</SectionTitle><LocalWanStepper stage={stage} runState={runState} approvalStage={approvalStage} /><div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 8, color: running ? COLORS.accent : runState === "error" ? COLORS.red : COLORS.muted, fontSize: 12 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: running ? COLORS.accent : runState === "error" ? COLORS.red : COLORS.muted, animation: running ? "pulse 1.2s ease-in-out infinite" : "none" }} />{stepText}</div></Card>
+            <Card><SectionTitle>WAN2GP</SectionTitle>
+              <div style={{ marginBottom: 10, fontSize: 12, color: COLORS.muted }}>
+                {videoCount === 1
+                  ? "Choose one start image for this clip."
+                  : `Choose one start image for each video. You need ${videoCount} images before the batch can start.`}
+              </div>
+              {videoCount === 1 ? <div style={{ marginBottom: 12 }}>
+                <FieldLabel>Start Image</FieldLabel>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+                  <input className="mono" value={wanForm.image_path} onChange={(e) => setWanForm((s) => ({ ...s, image_path: e.target.value }))} style={textInputStyle(true)} placeholder="Choose a start image..." />
+                  <ActionBtn variant="ghost" onClick={async () => {
+                    const selected = await onBrowseImage(wanForm.image_path, "Choose Wan2GP Start Image");
+                    if (selected) setWanForm((s) => ({ ...s, image_path: selected }));
+                  }}>Browse</ActionBtn>
+                </div>
+              </div> : null}
+              {videoCount > 1 ? <div style={{ marginBottom: 12 }}>
+                <FieldLabel>Start Images</FieldLabel>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {startImages.slice(0, videoCount).map((path, index) => (
+                    <div key={index} style={{ display: "grid", gridTemplateColumns: "120px 1fr auto", gap: 8, alignItems: "center" }}>
+                      <div style={{ fontSize: 12, color: COLORS.muted }}>{`Video ${index + 1}`}</div>
+                      <input
+                        className="mono"
+                        value={path}
+                        onChange={(e) => setWanForm((s) => {
+                            const next = Array.isArray(s.image_paths) ? [...s.image_paths] : ["", "", "", ""];
+                            next[index] = e.target.value;
+                            return { ...s, image_paths: next };
+                        })}
+                        style={textInputStyle(true)}
+                        placeholder={`Start image for video ${index + 1}...`}
+                      />
+                      <ActionBtn
+                        variant="ghost"
+                        onClick={async () => {
+                          const selected = await onBrowseImage(path, `Choose Start Image ${index + 1}`);
+                          if (!selected) return;
+                          setWanForm((s) => {
+                            const next = Array.isArray(s.image_paths) ? [...s.image_paths] : ["", "", "", ""];
+                            next[index] = selected;
+                            return { ...s, image_paths: next };
+                          });
+                        }}
+                      >
+                        Browse
+                      </ActionBtn>
+                    </div>
+                  ))}
+                </div>
+              </div> : null}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 12 }}>
+                <FieldSelect
+                  label="Amount of Characters"
+                  value={characterCount}
+                  onChange={(value) => setWanForm((s) => ({
+                    ...s,
+                    character_count: value,
+                    character_b: value === "2" ? s.character_b : "",
+                  }))}
+                  options={WAN_CHARACTER_COUNT_OPTIONS}
+                />
+                <div style={{ fontSize: 12, color: COLORS.muted, marginTop: -4 }}>
+                  {twoCharacterMode ? "Character A is the right-side character. Character B is the left-side character." : "Use one character when the clip focuses on a single subject."}
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: twoCharacterMode ? "1fr 1fr" : "1fr", gap: 12, marginBottom: 12 }}>
+                <FieldTextArea
+                  label={twoCharacterMode ? "Character A Description (Right Side)" : "Character A Description"}
+                  value={wanForm.character_a || ""}
+                  onChange={(value) => setWanForm((s) => ({ ...s, character_a: value }))}
+                  placeholder={twoCharacterMode ? "Describe the right-side character from the start image..." : "Describe the main character from the start image..."}
+                  rows={3}
+                />
+                {twoCharacterMode ? <FieldTextArea
+                  label="Character B Description (Left Side)"
+                  value={wanForm.character_b || ""}
+                  onChange={(value) => setWanForm((s) => ({ ...s, character_b: value }))}
+                  placeholder="Describe the left-side character from the start image..."
+                  rows={3}
+                /> : null}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
+                <ActionBtn variant="ghost" disabled={!(singleReady || multiReady) || running || waiting} onClick={async () => {
+                  try {
+                    const referenceImagePath = videoCount === 1
+                      ? String(wanForm.image_path || "").trim()
+                      : (Array.isArray(wanForm.image_paths) ? String(wanForm.image_paths[0] || "").trim() : "");
+                    const response = await api("/prompting/describe-characters", {
+                      method: "POST",
+                      body: {
+                        settings,
+                        character_count: characterCount,
+                        reference_image_path: referenceImagePath,
+                      },
+                    });
+                    if (response.success) {
+                      setWanForm((s) => ({
+                        ...s,
+                        character_a: response.character_a || "",
+                        character_b: characterCount === "2" ? (response.character_b || "") : "",
+                      }));
+                    } else {
+                      alert("Error: " + response.error);
+                    }
+                  } catch (error) {
+                    alert("Error: " + error.message);
+                  }
+                }}>Generate Character Descriptions</ActionBtn>
+                <ActionBtn variant="ghost" disabled={!validPromptLines.length || !(singleReady || multiReady) || running || waiting} onClick={async () => {
+                  try {
+                    const prompts = normalizedPromptItems.slice(0, videoCount).map((prompt) => String(prompt || "").trim()).filter(Boolean);
+                    const referenceImagePaths = videoCount === 1
+                      ? [String(wanForm.image_path || "").trim()]
+                      : (Array.isArray(wanForm.image_paths) ? wanForm.image_paths.slice(0, videoCount).map((path) => String(path || "").trim()).filter(Boolean) : []);
+                    const response = await api("/wan/rewrite-prompts", {
+                      method: "POST",
+                      body: {
+                        settings,
+                        prompts,
+                        reference_image_paths: referenceImagePaths,
+                        character_count: characterCount,
+                        character_a: wanForm.character_a || "",
+                        character_b: wanForm.character_b || "",
+                      },
+                    });
+                    if (response.success) {
+                      setWanForm((s) => {
+                        const rewritten = Array.isArray(response.prompts) ? response.prompts : [];
+                        const existing = Array.isArray(s.prompt_items) ? [...s.prompt_items] : [""];
+                        rewritten.forEach((prompt, index) => {
+                          existing[index] = prompt;
+                        });
+                        return { ...s, prompt_items: existing };
+                      });
+                    } else {
+                      alert("Error: " + response.error);
+                    }
+                  } catch (error) {
+                    alert("Error: " + error.message);
+                  }
+                }}>Rewrite Filled Prompts With Character Labels</ActionBtn>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 14 }}>
+                <FieldSelect label="Amount of Videos" value={String(videoCount)} onChange={(value) => {
+                  const n = Math.max(1, Math.min(4, Number(value) || 1));
+                  setWanForm((s) => {
+                    const existing = Array.isArray(s.prompt_items) ? s.prompt_items : [""];
+                    const next = Array.from({ length: n }, (_, i) => existing[i] || "");
+                    const existingImages = Array.isArray(s.image_paths) ? [...s.image_paths] : ["", "", "", ""];
+                    const seededImages = Array.from({ length: 4 }, (_, i) => existingImages[i] || "");
+                    if (n > 1 && !seededImages[0] && String(s.image_path || "").trim()) {
+                      seededImages[0] = String(s.image_path || "").trim();
+                    }
+                    const existingDurations = Array.isArray(s.clip_length_seconds_items) ? s.clip_length_seconds_items : [];
+                    const nextDurations = Array.from({ length: n }, (_, i) => {
+                      const value = Number(existingDurations[i]);
+                      return Number.isFinite(value) && value > 0 ? value : (Number(s.clip_length_seconds) || 15);
+                    });
+                    return {
+                      ...s,
+                      video_count: n,
+                      image_path: n === 1 ? (String(seededImages[0] || s.image_path || "").trim()) : s.image_path,
+                      image_paths: seededImages,
+                      prompt_items: next,
+                      clip_length_seconds_items: nextDurations,
+                    };
+                  });
+                }} options={WAN_VIDEO_COUNT_OPTIONS} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+                {normalizedPromptItems.slice(0, videoCount).map((prompt, i) => (
+                  <div key={i}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 220px", gap: 12, alignItems: "end", marginBottom: 8 }}>
+                      <FieldLabel>{videoCount > 1 ? `Video ${i + 1} Prompt` : "Video Prompt"}</FieldLabel>
+                      <FieldSelect
+                        label={videoCount > 1 ? `Video ${i + 1} Length (s)` : "Video Length (s)"}
+                        value={String(clipLengths[i] || clipLengthSeconds)}
+                        onChange={(value) => setWanForm((s) => {
+                          const currentCount = Math.max(1, Math.min(4, Number(s.video_count) || 1));
+                          const next = Array.from({ length: currentCount }, (_, index) => {
+                            const existing = Array.isArray(s.clip_length_seconds_items) ? Number(s.clip_length_seconds_items[index]) : NaN;
+                            return Number.isFinite(existing) && existing > 0 ? existing : (Number(s.clip_length_seconds) || 15);
+                          });
+                          next[i] = Number(value) || 15;
+                          return { ...s, clip_length_seconds_items: next };
+                        })}
+                        options={WAN_CLIP_LENGTH_OPTIONS}
+                      />
+                    </div>
+                    <textarea
+                      className="mono"
+                      rows={4}
+                      value={prompt}
+                      onChange={(e) => setWanForm((s) => {
+                        const next = Array.isArray(s.prompt_items) ? [...s.prompt_items] : [""];
+                        next[i] = e.target.value;
+                        return { ...s, prompt_items: next };
+                      })}
+                      style={{ ...textInputStyle(true), resize: "vertical", width: "100%" }}
+                      placeholder={twoCharacterMode ? `The older bearded man on the RIGHT speaks first and says "..." He pauses. Then the boy on the LEFT replies and says "..." One speaker at a time, clear pause between lines.` : `Describe what happens in video ${i + 1}...`}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 12, color: COLORS.muted, marginBottom: 4 }}>
+                {validPromptLines.length} of {videoCount} prompt{videoCount === 1 ? "" : "s"} filled • {clipLengths.map((seconds, index) => `V${index + 1}: ${seconds}s`).join(" | ")} • {twoCharacterMode ? "Two Character Mode" : "Single Character Mode"}
+              </div>
+              <div style={{ marginTop: 12 }}><FieldLabel>Export Folder</FieldLabel><div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+                <input className="mono" value={wanForm.export_folder} onChange={(e) => setWanForm((s) => ({ ...s, export_folder: e.target.value }))} style={textInputStyle(true)} />
+                <ActionBtn variant="ghost" onClick={onBrowseExportFolder}>Browse</ActionBtn>
+              </div></div>
+              <div style={{ marginTop: 8, fontSize: 12, color: COLORS.muted }}>
+                WAN continuity: <span className="mono" style={{ color: COLORS.text }}>{settings.wan2gp_continuity_mode || "Same Start Image"}</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+                <div style={{ padding: "10px 12px", borderRadius: 10, border: `1px solid ${COLORS.border}`, background: COLORS.surface2 }}>
+                  <div style={{ fontSize: 11, color: COLORS.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Elapsed</div>
+                  <div className="mono" style={{ fontSize: 18, color: COLORS.text }}>{formatDuration(liveElapsedSeconds)}</div>
+                </div>
+                <div style={{ padding: "10px 12px", borderRadius: 10, border: `1px solid ${COLORS.border}`, background: COLORS.surface2 }}>
+                  <div style={{ fontSize: 11, color: COLORS.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Completed In</div>
+                  <div className="mono" style={{ fontSize: 18, color: completedAtRaw ? COLORS.green : COLORS.muted }}>{completedAtRaw ? formatDuration(storedElapsed) : "--:--"}</div>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 8, marginTop: 16 }}>
+                <ActionBtn loading={running} disabled={(!singleReady && !multiReady) || !validPromptLines.length || running || waiting} onClick={() => onStartWan2gp(wanForm)} style={{ width: "100%" }}>Start WAN2GP Batch</ActionBtn>
+                <ActionBtn variant="danger" disabled={!running && !waiting} onClick={onStop} style={{ width: "100%" }}>Stop</ActionBtn>
+              </div>
+              {waiting ? <div style={{ display: "grid", gridTemplateColumns: canRegenerateLocalStep ? "1fr 1fr" : "1fr", gap: 8, marginTop: 8 }}>
+                <ActionBtn variant="success" onClick={onContinue} style={{ width: "100%" }}>Continue</ActionBtn>
+                {canRegenerateLocalStep ? <ActionBtn variant="ghost" onClick={onRegenerate} style={{ width: "100%" }}>Regenerate Step</ActionBtn> : null}
+              </div> : null}
+            </Card>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, minHeight: 0 }}>
+              <Card style={{ minHeight: 380, display: "flex", flexDirection: "column", overflow: "hidden" }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexShrink: 0 }}><SectionTitle style={{ marginBottom: 0 }}>Preview</SectionTitle><div className="mono" style={{ fontSize: 11, color: COLORS.muted }}>{preview.kind || "text"}</div></div><div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}><PreviewPane preview={preview} /></div></Card>
+              <Card style={{ minHeight: 380 }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}><SectionTitle style={{ marginBottom: 0 }}>Console</SectionTitle><button onClick={clearLogs} style={{ background: "none", border: "none", color: COLORS.muted, cursor: "pointer", fontSize: 12 }}>Clear</button></div><pre ref={logRef} className="mono" style={{ margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-word", overflowWrap: "anywhere", maxHeight: 380, minHeight: 280, overflowY: "auto", overflowX: "hidden", color: COLORS.muted, lineHeight: 1.75, fontSize: 11.5, paddingRight: 6 }}>{logs.length ? logs.join("\n") : "[READY] Waiting for a WAN2GP batch to start."}</pre></Card>
+            </div>
+          </div>
+          <RightRail settings={settings} health={health} runState={runState} stage={stage} onQuickUpdate={onQuickSave} onOpenSettings={onOpenSettings} onOpenConnections={onOpenConnections} />
+        </div>
+      );
+    }
+
+function Klein9BPage({ settings, fluxForm, setFluxForm, runState, stage, preview, logs, onStartFluxImage, onStop, onBrowseImage, onBrowseExportFolder, clearLogs, health, onQuickSave, onOpenSettings, onOpenConnections }) {
+      const running = runState === "running";
+      const waiting = runState === "waiting";
+      const logRef = useRef(null);
+      const imageCount = Math.max(1, Math.min(4, Number(fluxForm.image_count) || 1));
+      const promptItems = Array.isArray(fluxForm.prompt_items) && fluxForm.prompt_items.length ? fluxForm.prompt_items : [""];
+      const validPromptCount = promptItems.slice(0, imageCount).map((prompt) => String(prompt || "").trim()).filter(Boolean).length;
+      const [nowTick, setNowTick] = useState(Date.now());
+      const [startedAt, setStartedAt] = useState(0);
+      const [completedDuration, setCompletedDuration] = useState(0);
+      useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [logs]);
+      useEffect(() => {
+        if (running && !startedAt) { setStartedAt(Date.now()); }
+        if (!running && startedAt) {
+          if (runState === "complete" || runState === "error") setCompletedDuration(Math.floor((Date.now() - startedAt) / 1000));
+          setStartedAt(0);
+        }
+      }, [running, runState]);
+      useEffect(() => {
+        if (!running) return;
+        const timer = setInterval(() => setNowTick(Date.now()), 1000);
+        return () => clearInterval(timer);
+      }, [running]);
+      const liveElapsedSeconds = running && startedAt ? Math.max(0, Math.floor((nowTick - startedAt) / 1000)) : 0;
+      function formatDuration(totalSeconds) {
+        const s = Math.max(0, Number(totalSeconds) || 0);
+        const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+        if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+        return `${m}:${String(sec).padStart(2, "0")}`;
+      }
+      const canStart = !!String(fluxForm.reference_image_path || "").trim() && validPromptCount === imageCount && !running && !waiting;
+      const stepText = running ? `Running: ${stage}` : runState === "complete" ? "Image generation completed." : runState === "error" ? "Generation stopped with an error." : "Ready to generate image batch.";
+      return (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 20, height: "100%" }}>
+          <div style={{ overflowY: "auto", paddingRight: 4, display: "flex", flexDirection: "column", gap: 16 }}>
+            <Card><SectionTitle>Pipeline</SectionTitle>
+              <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, color: running ? COLORS.accent : runState === "error" ? COLORS.red : runState === "complete" ? COLORS.green : COLORS.muted, fontSize: 12 }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: running ? COLORS.accent : runState === "error" ? COLORS.red : runState === "complete" ? COLORS.green : COLORS.muted, animation: running ? "pulse 1.2s ease-in-out infinite" : "none" }} />
+                {stepText}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+                <div style={{ padding: "10px 12px", borderRadius: 10, border: `1px solid ${COLORS.border}`, background: COLORS.surface2 }}>
+                  <div style={{ fontSize: 11, color: COLORS.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Elapsed</div>
+                  <div className="mono" style={{ fontSize: 18, color: COLORS.text }}>{formatDuration(liveElapsedSeconds)}</div>
+                </div>
+                <div style={{ padding: "10px 12px", borderRadius: 10, border: `1px solid ${COLORS.border}`, background: COLORS.surface2 }}>
+                  <div style={{ fontSize: 11, color: COLORS.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Completed In</div>
+                  <div className="mono" style={{ fontSize: 18, color: completedDuration ? COLORS.green : COLORS.muted }}>{completedDuration ? formatDuration(completedDuration) : "--:--"}</div>
+                </div>
+              </div>
+            </Card>
+            <Card>
+              <SectionTitle>Klein9B — Flux Image Generator</SectionTitle>
+              <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 12, marginBottom: 14, alignItems: "end" }}>
+                <FieldSelect label="Amount of Images" value={String(imageCount)} onChange={(value) => {
+                  const n = Math.max(1, Math.min(4, Number(value) || 1));
+                  setFluxForm((s) => {
+                    const existing = Array.isArray(s.prompt_items) ? s.prompt_items : [""];
+                    const nextPrompts = Array.from({ length: n }, (_, i) => existing[i] || "");
+                    return { ...s, image_count: n, prompt_items: nextPrompts };
+                  });
+                }} options={KLEIN_IMAGE_COUNT_OPTIONS} />
+                <div style={{ fontSize: 12, color: COLORS.muted, paddingBottom: 10 }}>
+                  All generated images use the same reference image. Each image gets its own prompt.
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, marginBottom: 14 }}>
+                <div>
+                  <FieldLabel>Character Reference Image</FieldLabel>
+                  <input className="mono" value={fluxForm.reference_image_path || ""} onChange={(e) => setFluxForm((s) => ({ ...s, reference_image_path: e.target.value }))} style={textInputStyle(true)} placeholder="Choose a reference image..." />
+                </div>
+                <div style={{ alignSelf: "end" }}>
+                  <ActionBtn variant="ghost" onClick={async () => { const sel = await onBrowseImage(fluxForm.reference_image_path || "", "Choose Reference Image"); if (sel) setFluxForm((s) => ({ ...s, reference_image_path: sel })); }}>Browse</ActionBtn>
+                </div>
+              </div>
+              <div style={{ display: "grid", gap: 12 }}>
+                {promptItems.slice(0, imageCount).map((prompt, index) => (
+                  <FieldTextArea
+                    key={index}
+                    label={imageCount > 1 ? `Image ${index + 1} Prompt Idea` : "Image Prompt Idea"}
+                    value={prompt || ""}
+                    onChange={(value) => setFluxForm((s) => {
+                      const next = Array.isArray(s.prompt_items) ? [...s.prompt_items] : [""];
+                      next[index] = value;
+                      return { ...s, prompt_items: next };
+                    })}
+                    placeholder={`Describe image ${index + 1}... Gemini can expand this into a stronger image prompt.`}
+                    rows={4}
+                  />
+                ))}
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <ActionBtn variant="ghost" disabled={!String(fluxForm.reference_image_path || "").trim() || running || waiting} onClick={async () => {
+                  try {
+                    const promptIdeas = promptItems.slice(0, imageCount).map((prompt) => String(prompt || "").trim());
+                    const response = await api("/flux/image/prompts", {
+                      method: "POST",
+                      body: {
+                        settings,
+                        reference_image_path: fluxForm.reference_image_path,
+                        prompt_ideas: promptIdeas,
+                        image_count: imageCount,
+                      },
+                    });
+                    if (response.success) {
+                      setFluxForm((s) => {
+                        const nextPrompts = Array.isArray(response.prompts) ? response.prompts : [];
+                        return {
+                          ...s,
+                          prompt_items: Array.from({ length: imageCount }, (_, index) => nextPrompts[index] || (Array.isArray(s.prompt_items) ? s.prompt_items[index] || "" : "")),
+                        };
+                      });
+                    } else {
+                      alert("Error: " + response.error);
+                    }
+                  } catch (error) {
+                    alert("Error: " + error.message);
+                  }
+                }}>Generate Image Prompts</ActionBtn>
+              </div>
+              <div style={{ marginTop: 14 }}>
+                <FieldLabel>Export Folder</FieldLabel>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+                  <input className="mono" value={fluxForm.export_folder || ""} onChange={(e) => setFluxForm((s) => ({ ...s, export_folder: e.target.value }))} style={textInputStyle(true)} />
+                  <ActionBtn variant="ghost" onClick={onBrowseExportFolder}>Browse</ActionBtn>
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 8 }}>
+                {validPromptCount} of {imageCount} prompt{imageCount === 1 ? "" : "s"} filled
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 8, marginTop: 16 }}>
+                <ActionBtn loading={running} disabled={!canStart} onClick={() => onStartFluxImage(fluxForm)} style={{ width: "100%" }}>Generate Image Batch</ActionBtn>
+                <ActionBtn variant="danger" disabled={!running && !waiting} onClick={onStop} style={{ width: "100%" }}>Stop</ActionBtn>
+              </div>
+            </Card>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, minHeight: 0 }}>
+              <Card style={{ minHeight: 380, display: "flex", flexDirection: "column", overflow: "hidden" }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexShrink: 0 }}><SectionTitle style={{ marginBottom: 0 }}>Preview</SectionTitle><div className="mono" style={{ fontSize: 11, color: COLORS.muted }}>{preview.kind || "text"}</div></div><div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}><PreviewPane preview={preview} /></div></Card>
+              <Card style={{ minHeight: 380 }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}><SectionTitle style={{ marginBottom: 0 }}>Console</SectionTitle><button onClick={clearLogs} style={{ background: "none", border: "none", color: COLORS.muted, cursor: "pointer", fontSize: 12 }}>Clear</button></div><pre ref={logRef} className="mono" style={{ margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-word", overflowWrap: "anywhere", maxHeight: 380, minHeight: 280, overflowY: "auto", overflowX: "hidden", color: COLORS.muted, lineHeight: 1.75, fontSize: 11.5, paddingRight: 6 }}>{logs.length ? logs.join("\n") : "[READY] Waiting for a Flux image run to start."}</pre></Card>
+            </div>
+          </div>
+          <RightRail settings={settings} health={health} runState={runState} stage={stage} onQuickUpdate={onQuickSave} onOpenSettings={onOpenSettings} onOpenConnections={onOpenConnections} />
+        </div>
+      );
+    }
+
+function PromptingPage({ settings, health, form, setForm, runState, stage, preview, logs, clearLogs, onGenerate, onGenerateContextVibe, onBrowseImage, onQuickSave, onOpenSettings, onOpenConnections }) {
+      const running = runState === "running";
+      const waiting = runState === "waiting";
+      const logRef = useRef(null);
+      const characterCount = String(form.character_count || "2");
+      const promptCount = Math.max(1, Number(form.num_videos) || 1);
+      const promptItems = Array.isArray(form.prompt_items) && form.prompt_items.length ? form.prompt_items : [""];
+      useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [logs]);
+      const canGenerate = !!String(form.context_vibe || "").trim() && !running && !waiting;
+      return (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 20, height: "100%" }}>
+          <div style={{ overflowY: "auto", paddingRight: 4, display: "flex", flexDirection: "column", gap: 16 }}>
+            <Card>
+              <SectionTitle>Prompting Engine</SectionTitle>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
+                <FieldSelect label="Number of Videos" value={String(form.num_videos || "1")} onChange={(v) => setForm((s) => ({ ...s, num_videos: Number(v) || 1 }))} options={["1", "2", "3", "4", "5", "6", "8", "10"]} />
+                <FieldSelect label="Video Length" value={String(form.video_length || "15")} onChange={(v) => setForm((s) => ({ ...s, video_length: v }))} options={["5", "6", "10", "15", "20", "30"]} />
+                <FieldSelect label="Number of Characters" value={characterCount} onChange={(v) => setForm((s) => ({ ...s, character_count: v }))} options={CHARACTER_COUNT_OPTIONS} />
+              </div>
+              {characterCount === "1" ? <div style={{ marginBottom: 14 }}>
+                <FieldTextArea label="Main Character" value={form.character_a || ""} onChange={(v) => setForm((s) => ({ ...s, character_a: v, character_b: "" }))} placeholder="E.g., A scruffy postman with a red jacket and worried expression..." rows={3} />
+              </div> : null}
+              {characterCount === "2" ? <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+                <FieldTextArea label="Character A (RIGHT Side)" value={form.character_a || ""} onChange={(v) => setForm((s) => ({ ...s, character_a: v }))} placeholder="E.g., An older bearded man in a dark trenchcoat..." rows={3} />
+                <FieldTextArea label="Character B (LEFT Side)" value={form.character_b || ""} onChange={(v) => setForm((s) => ({ ...s, character_b: v }))} placeholder="E.g., A young boy with glasses looking nervous..." rows={3} />
+              </div> : null}
+              {characterCount === "3+" ? <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+                <FieldTextArea label="Main Character / Lead" value={form.character_a || ""} onChange={(v) => setForm((s) => ({ ...s, character_a: v }))} placeholder="Describe the main character or main speaker..." rows={3} />
+                <FieldTextArea label="Other Character Notes" value={form.character_b || ""} onChange={(v) => setForm((s) => ({ ...s, character_b: v }))} placeholder="Describe the rest of the cast, group, or supporting characters..." rows={3} />
+              </div> : null}
+              <div style={{ fontSize: 12, color: COLORS.muted, marginBottom: 14 }}>
+                {characterCount === "1" ? "Use this when the scene is centered around one character." : null}
+                {characterCount === "2" ? "Use this when there are two clear characters and left/right placement matters." : null}
+                {characterCount === "3+" ? "Use this when there are more than two characters or a group scene." : null}
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: COLORS.muted, marginBottom: 6 }}>Reference Image (For Visual Extraction)</label>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input className="mono" value={form.reference_image_path || ""} onChange={(e) => setForm((s) => ({ ...s, reference_image_path: e.target.value }))} style={textInputStyle(true)} placeholder="Path to base image..." />
+                  <ActionBtn variant="ghost" onClick={async () => { const selected = await onBrowseImage(form.reference_image_path, "Choose Reference Image"); if (selected) setForm(s => ({ ...s, reference_image_path: selected })); }}>Browse</ActionBtn>
+                </div>
+                <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <ActionBtn variant="ghost" disabled={!String(form.reference_image_path || "").trim() || running || waiting} onClick={async () => {
+                    try {
+                      const response = await api("/prompting/describe-characters", {
+                        method: "POST",
+                        body: {
+                          settings,
+                          character_count: characterCount,
+                          reference_image_path: form.reference_image_path,
+                        },
+                      });
+                      if (response.success) {
+                        setForm((s) => ({
+                          ...s,
+                          character_a: response.character_a || "",
+                          character_b: response.character_b || "",
+                        }));
+                      } else {
+                        alert("Error: " + response.error);
+                      }
+                    } catch (error) {
+                      alert("Error: " + error.message);
+                    }
+                  }}>Describe Characters From Photo</ActionBtn>
+                  <ActionBtn variant="ghost" disabled={!String(form.reference_image_path || "").trim() || running || waiting} onClick={() => onGenerateContextVibe(form)}>Generate Context / Vibe</ActionBtn>
+                </div>
+              </div>
+              <FieldTextArea label="Context / Vibe" value={form.context_vibe || ""} onChange={(v) => setForm((s) => ({ ...s, context_vibe: v }))} placeholder="E.g., Dark UK humor, vulgar, unhinged..." rows={3} />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8, marginTop: 16 }}>
+                <ActionBtn loading={running} disabled={!canGenerate} onClick={() => onGenerate(form)} style={{ width: "100%" }}>Generate Production Pack</ActionBtn>
+              </div>
+            </Card>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16, minHeight: 0 }}>
+              <Card style={{ minHeight: 380, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexShrink: 0 }}>
+                  <SectionTitle style={{ marginBottom: 0 }}>Generated Prompts</SectionTitle>
+                </div>
+                <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "grid", gap: 12 }}>
+                  {Array.from({ length: promptCount }, (_, index) => (
+                    <div key={index}>
+                      <FieldLabel>{`Prompt ${index + 1}`}</FieldLabel>
+                      <textarea
+                        className="mono"
+                        readOnly
+                        value={promptItems[index] || ""}
+                        style={{ ...textInputStyle(true), resize: "vertical", width: "100%", minHeight: 110, whiteSpace: "pre-wrap" }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+              <Card>
+                <SectionTitle>YouTube</SectionTitle>
+                <div style={{ display: "grid", gap: 12 }}>
+                  <div>
+                    <FieldLabel>Title</FieldLabel>
+                    <input className="mono" readOnly value={form.youtube_title || ""} style={textInputStyle(true)} />
+                  </div>
+                  <div>
+                    <FieldLabel>Description</FieldLabel>
+                    <textarea className="mono" readOnly value={form.youtube_description || ""} rows={6} style={{ ...textInputStyle(true), resize: "vertical", width: "100%" }} />
+                  </div>
+                  <div>
+                    <FieldLabel>Tags (comma separated)</FieldLabel>
+                    <textarea className="mono" readOnly value={form.youtube_tags || ""} rows={3} style={{ ...textInputStyle(true), resize: "vertical", width: "100%" }} />
+                  </div>
+                </div>
+              </Card>
+              <Card>
+                <SectionTitle>TikTok</SectionTitle>
+                <div>
+                  <FieldLabel>Description</FieldLabel>
+                  <textarea className="mono" readOnly value={form.tiktok_description || ""} rows={6} style={{ ...textInputStyle(true), resize: "vertical", width: "100%" }} />
+                </div>
+              </Card>
+            </div>
+          </div>
+          <RightRail settings={settings} health={health} runState={runState} stage={stage} onQuickUpdate={onQuickSave} onOpenSettings={onOpenSettings} onOpenConnections={onOpenConnections} />
+        </div>
+      );
+    }
+
+    function App() {
+      const [page, setPage] = useState("prompting");
+      const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+      const [promptingForm, setPromptingForm] = useState({ num_videos: 1, video_length: "15", character_count: "2", context_vibe: "", character_a: "", character_b: "", reference_image_path: "", raw_output: "", prompt_items: [""], youtube_title: "", youtube_description: "", youtube_tags: "", tiktok_description: "" });
+      const [wanForm, setWanForm] = useState({ image_mode: "Single Start Image", image_path: "", image_paths: ["", "", "", ""], prompts_text: "", prompt_items: [""], video_count: 1, clip_length_seconds: 15, clip_length_seconds_items: [15], export_folder: "", source_mode: "wan2gp", flux_reference_image_path: "", flux_concept: "", character_count: "2", character_a: "", character_b: "" });
+      const [fluxForm, setFluxForm] = useState({ reference_image_path: "", image_count: 1, prompt_items: [""], export_folder: DEFAULT_OUTPUT_IMAGES_DIR });
+      const [imageFinderForm, setImageFinderForm] = useState({ query: "", results: [], last_error: "", selected_index: -1, selected_query: "" });
+      const [autoForm, setAutoForm] = useState({ query: "", status_text: "" });
+      const [currentProject, setCurrentProject] = useState(null);
+      const [stage, setStage] = useState("Extract Content");
+      const [runState, setRunState] = useState("idle");
+      const [approvalStage, setApprovalStage] = useState("");
+      const [logs, setLogs] = useState([]);
+      const [preview, setPreview] = useState({ kind: "text", content: "Preview will appear here." });
+      const [health, setHealth] = useState({ ok: false });
+      const [connectionStatuses, setConnectionStatuses] = useState({ health: { ok: false } });
+      const wsRef = useRef(null);
+
+      function applySettings(nextSettings) {
+        setSettings((prev) => mergeSettings(prev, nextSettings));
+      }
+
+      function applyStateSnapshot(stateResponse, options = {}) {
+        if (stateResponse.stage) setStage(stateResponse.stage);
+        if (stateResponse.runState) setRunState(stateResponse.runState);
+        if (typeof stateResponse.approvalStage === "string") setApprovalStage(stateResponse.approvalStage);
+        if (Array.isArray(stateResponse.logs)) setLogs(stateResponse.logs);
+        if (stateResponse.preview) setPreview(stateResponse.preview);
+        if (options.includeSettings && stateResponse.settings) setSettings((prev) => mergeSettings(prev, stateResponse.settings));
+        setCurrentProject(stateResponse.project || null);
+        if (stateResponse.project && options.syncFormsFromProject) {
+          if (options.syncPageWithProject) {
+              setPage(
+                stateResponse.project.source_mode === "wan2gp" || stateResponse.project.source_mode === "flux_storyboard"
+                  ? "wan2gp" : "wan2gp"
+              );
+          }
+          setWanForm((prev) => ({
+            ...prev,
+            image_mode: Array.isArray(stateResponse.project.image_paths) && stateResponse.project.image_paths.length >= 2 ? "Storyboard Image Sequence" : prev.image_mode,
+            image_path: stateResponse.project.image_path || prev.image_path,
+            image_paths: Array.isArray(stateResponse.project.image_paths) && stateResponse.project.image_paths.length
+              ? [...stateResponse.project.image_paths, "", "", "", ""].slice(0, 4)
+              : prev.image_paths,
+            video_count: stateResponse.project.prompt_count || prev.video_count,
+            prompt_items: Array.isArray(stateResponse.project.prompts) && stateResponse.project.prompts.length
+              ? [...stateResponse.project.prompts, "", "", "", ""].slice(0, Math.max(1, Math.min(4, Number(stateResponse.project.prompt_count || stateResponse.project.prompts.length || prev.video_count || 1))))
+              : prev.prompt_items,
+            character_count: stateResponse.project.character_count || prev.character_count,
+            clip_length_seconds: Number(stateResponse.project.clip_length_seconds) || prev.clip_length_seconds,
+            clip_length_seconds_items: Array.isArray(stateResponse.project.clip_length_seconds_items) && stateResponse.project.clip_length_seconds_items.length
+              ? stateResponse.project.clip_length_seconds_items.map((value) => Number(value) || prev.clip_length_seconds || 15).slice(0, 4)
+              : prev.clip_length_seconds_items,
+            character_a: stateResponse.project.character_a || prev.character_a,
+            character_b: stateResponse.project.character_b || prev.character_b,
+            flux_reference_image_path: stateResponse.project.image_path || prev.flux_reference_image_path,
+            flux_concept: stateResponse.project.flux_concept || prev.flux_concept,
+            export_folder: stateResponse.project.export_dir || prev.export_folder,
+          }));
+        }
+        if (stateResponse.project?.source_mode === "flux_storyboard" && Array.isArray(stateResponse.project.image_paths) && stateResponse.project.image_paths.length) {
+          setWanForm((prev) => ({
+            ...prev,
+            image_mode: "Storyboard Image Sequence",
+            image_path: stateResponse.project.image_path || prev.image_path,
+            image_paths: [...stateResponse.project.image_paths, "", "", "", ""].slice(0, 4),
+            video_count: stateResponse.project.prompt_count || prev.video_count,
+            prompt_items: Array.isArray(stateResponse.project.prompts) && stateResponse.project.prompts.length
+              ? [...stateResponse.project.prompts, "", "", "", ""].slice(0, Math.max(1, Math.min(4, Number(stateResponse.project.prompt_count || stateResponse.project.prompts.length || prev.video_count || 1))))
+              : prev.prompt_items,
+            character_count: stateResponse.project.character_count || prev.character_count,
+            clip_length_seconds: Number(stateResponse.project.clip_length_seconds) || prev.clip_length_seconds,
+            clip_length_seconds_items: Array.isArray(stateResponse.project.clip_length_seconds_items) && stateResponse.project.clip_length_seconds_items.length
+              ? stateResponse.project.clip_length_seconds_items.map((value) => Number(value) || prev.clip_length_seconds || 15).slice(0, 4)
+              : prev.clip_length_seconds_items,
+            character_a: stateResponse.project.character_a || prev.character_a,
+            character_b: stateResponse.project.character_b || prev.character_b,
+            flux_reference_image_path: stateResponse.project.image_path || prev.flux_reference_image_path,
+            flux_concept: stateResponse.project.flux_concept || prev.flux_concept,
+            export_folder: stateResponse.project.export_dir || prev.export_folder,
+          }));
+        }
+      }
+
+      async function loadInitialData() {
+        try {
+          const [settingsResponse, stateResponse, healthResponse] = await Promise.all([api("/settings"), api("/project/state"), api("/health")]);
+          setSettings((prev) => mergeSettings(prev, settingsResponse));
+          setWanForm((prev) => ({ ...prev, export_folder: settingsResponse.export_folder || prev.export_folder }));
+          setFluxForm((prev) => ({ ...prev, export_folder: prev.export_folder || DEFAULT_OUTPUT_IMAGES_DIR }));
+          applyStateSnapshot(stateResponse, { includeSettings: true, syncFormsFromProject: true });
+          setHealth(healthResponse);
+          setConnectionStatuses((prev) => ({ ...prev, health: { ok: !!healthResponse.ok, message: healthResponse.backend || "online" } }));
+        } catch (error) {
+          setLogs((prev) => [...prev, `[ERROR] ${error.message}`]);
+        }
+      }
+
+      useEffect(() => { loadInitialData(); }, []);
+      useEffect(() => {
+        const timer = setInterval(async () => {
+          try {
+            const response = await api("/health");
+            setHealth(response);
+            setConnectionStatuses((prev) => ({ ...prev, health: { ok: !!response.ok, message: response.backend || "online" } }));
+          } catch (error) {
+            setHealth({ ok: false });
+            setConnectionStatuses((prev) => ({ ...prev, health: { ok: false, message: error.message } }));
+          }
+        }, 5000);
+        return () => clearInterval(timer);
+      }, []);
+
+      useEffect(() => {
+        const timer = setInterval(async () => {
+          try {
+            const stateResponse = await api("/project/state");
+            applyStateSnapshot(stateResponse);
+          } catch (error) {
+            setLogs((prev) => [...prev, `[ERROR] ${error.message}`].slice(-500));
+          }
+        }, 1200);
+        return () => {
+          clearInterval(timer);
+          if (wsRef.current) wsRef.current.close();
+        };
+      }, []);
+
+      async function saveSettingsPatch(patch) {
+        const merged = mergeSettings(settings, patch);
+        setSettings(merged);
+        await api("/settings", { method: "POST", body: patch });
+      }
+
+      async function browseFolder(initialPath, title) {
+        const response = await api("/dialogs/open-folder", { method: "POST", body: { initial_path: initialPath || "", title } });
+        return response.path || "";
+      }
+
+      async function browseProject(initialPath, title) {
+        const response = await api("/dialogs/open-project", { method: "POST", body: { initial_path: initialPath || "", title } });
+        return response.path || "";
+      }
+
+      async function browseImage(initialPath, title) {
+        const response = await api("/dialogs/open-file", { method: "POST", body: { initial_path: initialPath || "", title } });
+        return response.path || "";
+      }
+
+      async function handleStartWan2gp(form) {
+        const videoCount = Math.max(1, Math.min(4, Number(form.video_count) || 1));
+        const promptItems = Array.isArray(form.prompt_items) ? form.prompt_items : [];
+        const prompts = promptItems.slice(0, videoCount).map((s) => String(s || "").trim()).filter(Boolean);
+        const imagePaths = Array.isArray(form.image_paths) ? form.image_paths.slice(0, videoCount).map((path) => String(path || "").trim()).filter(Boolean) : [];
+        const primaryImagePath = videoCount === 1 ? String(form.image_path || "").trim() : "";
+        const clip_length_seconds = Number(form.clip_length_seconds) || 15;
+        const clip_length_seconds_items = prompts.map((_, index) => {
+          const value = Array.isArray(form.clip_length_seconds_items) ? Number(form.clip_length_seconds_items[index]) : NaN;
+          return Number.isFinite(value) && value > 0 ? value : clip_length_seconds;
+        });
+        await api("/wan2gp/start", {
+          method: "POST",
+          body: {
+            image_path: primaryImagePath,
+            image_paths: imagePaths,
+            prompts,
+            character_count: String(form.character_count || "2"),
+            character_a: form.character_a || "",
+            character_b: form.character_b || "",
+            clip_length_seconds,
+            clip_length_seconds_items,
+            export_folder: form.export_folder || settings.export_folder,
+            settings,
+          },
+        });
+        setRunState("running");
+        setApprovalStage("");
+      }
+
+      async function handleStartFluxStoryboard(form) {
+        await api("/flux/storyboard/start", {
+          method: "POST",
+          body: {
+            reference_image_path: form.flux_reference_image_path,
+            concept: form.flux_concept,
+            export_folder: form.export_folder || settings.export_folder,
+            settings,
+          },
+        });
+        setRunState("running");
+        setApprovalStage("");
+      }
+
+      async function handleStartFluxImage(form) {
+        const imageCount = Math.max(1, Math.min(4, Number(form.image_count) || 1));
+        const prompts = (Array.isArray(form.prompt_items) ? form.prompt_items : [])
+          .slice(0, imageCount)
+          .map((prompt) => String(prompt || "").trim())
+          .filter(Boolean);
+        await api("/flux/image/start", {
+          method: "POST",
+          body: {
+            reference_image_path: form.reference_image_path,
+            prompts,
+            export_folder: form.export_folder || DEFAULT_OUTPUT_IMAGES_DIR,
+            settings,
+          },
+        });
+        setRunState("running");
+        setApprovalStage("");
+      }
+
+      async function handleGeneratePrompting(form) {
+        setRunState("running");
+        setStage("Generating Prompts...");
+        try {
+          const data = await api("/prompting/generate", {
+            method: "POST",
+            body: {
+              settings,
+              num_videos: form.num_videos,
+              video_length: form.video_length,
+              character_count: form.character_count,
+              context_vibe: form.context_vibe,
+              character_a: form.character_a,
+              character_b: form.character_b,
+              reference_image_path: form.reference_image_path,
+            },
+          });
+          if (data.success) {
+            setPromptingForm(s => ({
+              ...s,
+              raw_output: data.raw_output || "",
+              prompt_items: Array.isArray(data.video_prompts) && data.video_prompts.length ? data.video_prompts : [""],
+              youtube_title: data.youtube?.title || "",
+              youtube_description: data.youtube?.description || "",
+              youtube_tags: Array.isArray(data.youtube?.tags) ? data.youtube.tags.join(", ") : "",
+              tiktok_description: data.tiktok?.description || "",
+            }));
+          } else {
+            alert("Error: " + data.error);
+          }
+        } catch (e) {
+          alert("Error: " + e.message);
+        } finally {
+          setRunState("idle");
+          setStage("Idle");
+        }
+      }
+
+      async function handleGenerateContextVibe(form) {
+        setRunState("running");
+        setStage("Generating Context / Vibe...");
+        try {
+          const data = await api("/prompting/generate-context-vibe", {
+            method: "POST",
+            body: {
+              settings,
+              character_count: form.character_count,
+              character_a: form.character_a,
+              character_b: form.character_b,
+              reference_image_path: form.reference_image_path,
+            },
+          });
+          if (data.success) {
+            setPromptingForm((s) => ({ ...s, context_vibe: data.context_vibe || s.context_vibe }));
+          } else {
+            alert("Error: " + data.error);
+          }
+        } catch (e) {
+          alert("Error: " + e.message);
+        } finally {
+          setRunState("idle");
+          setStage("Idle");
+        }
+      }
+
+      async function waitForProjectCompletion(expectedSourceMode = "", timeoutMs = 45 * 60 * 1000) {
+        const startedAt = Date.now();
+        while (Date.now() - startedAt < timeoutMs) {
+          const stateResponse = await api("/project/state");
+          const currentMode = stateResponse.project?.source_mode || "";
+          if (!expectedSourceMode || currentMode === expectedSourceMode || stateResponse.runState === "idle") {
+            if (stateResponse.runState === "complete") {
+              return stateResponse;
+            }
+            if (stateResponse.runState === "error") {
+              throw new Error((stateResponse.logs || []).slice(-1)[0] || "Pipeline returned an error.");
+            }
+          }
+          await new Promise((resolve) => setTimeout(resolve, 2500));
+        }
+        throw new Error("Timed out waiting for the pipeline to finish.");
+      }
+
+      async function handleRunAuto(form) {
+        const searchQuery = String(form.query || "").trim();
+        if (!searchQuery) return;
+        try {
+          setRunState("running");
+          setAutoForm((prev) => ({ ...prev, status_text: "Searching for a reference image..." }));
+          setStage("Auto: Search");
+          const searchResponse = await api("/image-finder/search", {
+            method: "POST",
+            body: { settings, query: searchQuery },
+          });
+          const searchResults = Array.isArray(searchResponse.results) ? searchResponse.results : [];
+          if (!searchResults.length) throw new Error("No image results were found.");
+          const chosen = searchResults[0];
+
+          setAutoForm((prev) => ({ ...prev, status_text: "Importing chosen reference image..." }));
+          const importResponse = await api("/image-finder/use-in-klein", {
+            method: "POST",
+            body: {
+              image_urls: [chosen.asset_url, chosen.fallback_url, chosen.thumbnail_url].filter(Boolean),
+              filename_hint: chosen.filename_hint || "reference.jpg",
+            },
+          });
+          const importedReferencePath = importResponse.path || "";
+          if (!importedReferencePath) throw new Error("Reference image import failed.");
+
+          setFluxForm((prev) => ({
+            ...prev,
+            reference_image_path: importedReferencePath,
+            image_count: 1,
+            prompt_items: [""],
+          }));
+
+          setAutoForm((prev) => ({ ...prev, status_text: "Generating Klein9B prompt..." }));
+          setStage("Auto: Klein Prompt");
+          const fluxPromptResponse = await api("/flux/image/prompts", {
+            method: "POST",
+            body: {
+              settings,
+              reference_image_path: importedReferencePath,
+              prompt_ideas: [""],
+              image_count: 1,
+            },
+          });
+          const generatedFluxPrompt = Array.isArray(fluxPromptResponse.prompts) && fluxPromptResponse.prompts.length ? fluxPromptResponse.prompts[0] : "";
+          if (!generatedFluxPrompt) throw new Error("Auto prompt generation for Klein9B failed.");
+          const autoFluxForm = {
+            reference_image_path: importedReferencePath,
+            image_count: 1,
+            prompt_items: [generatedFluxPrompt],
+            export_folder: fluxForm.export_folder || DEFAULT_OUTPUT_IMAGES_DIR,
+          };
+          setFluxForm((prev) => ({ ...prev, ...autoFluxForm }));
+
+          setAutoForm((prev) => ({ ...prev, status_text: "Generating Klein9B image..." }));
+          setStage("Auto: Klein Render");
+          await handleStartFluxImage(autoFluxForm);
+          const fluxState = await waitForProjectCompletion("flux_image");
+          const generatedImagePath = Array.isArray(fluxState.project?.generated_images) && fluxState.project.generated_images.length
+            ? fluxState.project.generated_images[fluxState.project.generated_images.length - 1]
+            : fluxState.preview?.content || "";
+          if (!generatedImagePath) throw new Error("Flux finished but no generated image path was found.");
+
+          const autoPromptingForm = {
+            num_videos: 1,
+            video_length: "30",
+            character_count: "1",
+            context_vibe: "",
+            character_a: "",
+            character_b: "",
+            reference_image_path: generatedImagePath,
+          };
+          setPromptingForm((prev) => ({ ...prev, ...autoPromptingForm, prompt_items: [""], youtube_title: "", youtube_description: "", youtube_tags: "", tiktok_description: "" }));
+
+          setAutoForm((prev) => ({ ...prev, status_text: "Describing character from generated image..." }));
+          setStage("Auto: Character Descriptions");
+          const descriptionResponse = await api("/prompting/describe-characters", {
+            method: "POST",
+            body: {
+              settings,
+              character_count: "1",
+              reference_image_path: generatedImagePath,
+            },
+          });
+          const autoCharacterA = descriptionResponse.character_a || "";
+
+          setAutoForm((prev) => ({ ...prev, status_text: "Generating context / vibe..." }));
+          setStage("Auto: Context / Vibe");
+          const contextResponse = await api("/prompting/generate-context-vibe", {
+            method: "POST",
+            body: {
+              settings,
+              character_count: "1",
+              character_a: autoCharacterA,
+              character_b: "",
+              reference_image_path: generatedImagePath,
+            },
+          });
+          const autoContextVibe = contextResponse.context_vibe || "";
+
+          const promptingPayload = {
+            settings,
+            num_videos: 1,
+            video_length: "30",
+            character_count: "1",
+            context_vibe: autoContextVibe,
+            character_a: autoCharacterA,
+            character_b: "",
+            reference_image_path: generatedImagePath,
+          };
+          setAutoForm((prev) => ({ ...prev, status_text: "Generating 30-second prompt pack..." }));
+          setStage("Auto: Prompting");
+          const promptingResponse = await api("/prompting/generate", { method: "POST", body: promptingPayload });
+          const autoPrompt = Array.isArray(promptingResponse.video_prompts) && promptingResponse.video_prompts.length ? promptingResponse.video_prompts[0] : "";
+          if (!autoPrompt) throw new Error("Prompting generation returned no WAN prompt.");
+          setPromptingForm((prev) => ({
+            ...prev,
+            ...promptingPayload,
+            raw_output: promptingResponse.raw_output || "",
+            prompt_items: promptingResponse.video_prompts || [""],
+            youtube_title: promptingResponse.youtube?.title || "",
+            youtube_description: promptingResponse.youtube?.description || "",
+            youtube_tags: Array.isArray(promptingResponse.youtube?.tags) ? promptingResponse.youtube.tags.join(", ") : "",
+            tiktok_description: promptingResponse.tiktok?.description || "",
+          }));
+
+          setAutoForm((prev) => ({ ...prev, status_text: "Rewriting WAN prompt with character labels..." }));
+          setStage("Auto: WAN Rewrite");
+          const rewriteResponse = await api("/wan/rewrite-prompts", {
+            method: "POST",
+            body: {
+              settings,
+              prompts: [autoPrompt],
+              reference_image_paths: [generatedImagePath],
+              character_count: "1",
+              character_a: autoCharacterA,
+              character_b: "",
+            },
+          });
+          const rewrittenPrompt = Array.isArray(rewriteResponse.prompts) && rewriteResponse.prompts.length ? rewriteResponse.prompts[0] : autoPrompt;
+
+          const autoWanForm = {
+            ...wanForm,
+            image_path: generatedImagePath,
+            image_paths: [generatedImagePath, "", "", ""],
+            video_count: 1,
+            clip_length_seconds: 30,
+            clip_length_seconds_items: [30],
+            prompt_items: [rewrittenPrompt],
+            export_folder: wanForm.export_folder || settings.export_folder,
+            character_count: "1",
+            character_a: autoCharacterA,
+            character_b: "",
+          };
+          setWanForm((prev) => ({ ...prev, ...autoWanForm }));
+          setPage("wan2gp");
+          setAutoForm((prev) => ({ ...prev, status_text: "Starting WAN2GP 30-second video..." }));
+          setStage("Auto: WAN Start");
+          await handleStartWan2gp(autoWanForm);
+          setAutoForm((prev) => ({ ...prev, status_text: "WAN2GP started. The video is now rendering." }));
+        } catch (e) {
+          setRunState("error");
+          setStage("Error");
+          setAutoForm((prev) => ({ ...prev, status_text: `Auto failed: ${e.message}` }));
+          alert("Error: " + e.message);
+        }
+      }
+
+      async function handleAction(path, nextState) {
+        await api(path, { method: "POST" });
+        if (nextState) setRunState(nextState);
+      }
+
+      return (
+        <div style={{ height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", background: COLORS.bg }}>
+          <div style={{ height: 52, borderBottom: `1px solid ${COLORS.border}`, background: COLORS.surface, display: "flex", alignItems: "center", padding: "0 18px", gap: 12, flexShrink: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: 16, marginRight: 8 }}>Automated Video Creator</div>
+            <PillBadge label={health.ok ? "Backend Online" : "Backend Offline"} status={health.ok ? "ok" : "err"} />
+            <PillBadge label={settings.narration_engine === "Edge TTS" ? "Edge TTS" : settings.narration_engine} status={settings.narration_engine === "Disabled" ? "warn" : "ok"} />
+            <PillBadge label={settings.serpapi_api_key || settings.pexels_api_key || settings.pixabay_api_key ? "Visual APIs" : "Visual APIs Optional"} status={settings.serpapi_api_key || settings.pexels_api_key || settings.pixabay_api_key ? "ok" : "warn"} />
+            <PillBadge label={health.ffmpeg?.ok ? "FFmpeg" : "FFmpeg Missing"} status={health.ffmpeg?.ok ? "ok" : "err"} />
+            <div style={{ flex: 1 }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 8, color: runState === "running" ? COLORS.accent : runState === "waiting" ? COLORS.yellow : COLORS.muted, fontSize: 12 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: runState === "waiting" ? COLORS.yellow : runState === "running" ? COLORS.accent : COLORS.muted, animation: runState === "running" ? "blink 1.1s step-end infinite" : "none" }} />
+              {runState === "waiting" ? `Waiting: ${approvalStage}` : `Stage: ${stage}`}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+            <Sidebar current={page} onChange={setPage} />
+            <div style={{ flex: 1, overflow: "hidden", padding: 20 }}>
+              {page === "auto" ? <AutoPage autoForm={autoForm} setAutoForm={setAutoForm} runState={runState} stage={stage} onRunAuto={handleRunAuto} /> : null}
+              {page === "prompting" ? <PromptingPage settings={settings} health={health} form={promptingForm} setForm={setPromptingForm} runState={runState} stage={stage} preview={preview} logs={logs} clearLogs={() => setLogs([])} onGenerate={handleGeneratePrompting} onGenerateContextVibe={handleGenerateContextVibe} onBrowseImage={async (initialPath, title) => browseImage(initialPath || promptingForm.reference_image_path, title || "Choose Reference Image")} onQuickSave={saveSettingsPatch} onOpenSettings={() => setPage("settings")} onOpenConnections={() => setPage("connections")} /> : null}
+              {page === "wan2gp" ? <Wan2GPPage settings={settings} wanForm={wanForm} setWanForm={setWanForm} currentProject={currentProject} runState={runState} stage={stage} approvalStage={approvalStage} preview={preview} logs={logs} clearLogs={() => setLogs([])} onStartWan2gp={handleStartWan2gp} onStop={() => handleAction("/project/stop", "idle")} onContinue={() => handleAction("/project/continue", "running")} onRegenerate={() => handleAction("/project/regenerate", "running")} onBrowseImage={async (initialPath, title) => browseImage(initialPath || wanForm.image_path, title || "Choose Wan2GP Start Image")} onBrowseExportFolder={async () => { const selected = await browseFolder(wanForm.export_folder || settings.export_folder, "Choose Wan2GP Export Folder"); if (selected) setWanForm((prev) => ({ ...prev, export_folder: selected })); }} health={health} onQuickSave={saveSettingsPatch} onOpenSettings={() => setPage("settings")} onOpenConnections={() => setPage("connections")} /> : null}
+              {page === "klein9b" ? <Klein9BPage settings={settings} fluxForm={fluxForm} setFluxForm={setFluxForm} runState={runState} stage={stage} preview={preview} logs={logs} clearLogs={() => setLogs([])} onStartFluxImage={handleStartFluxImage} onStop={() => handleAction("/project/stop", "idle")} onBrowseImage={async (initialPath, title) => browseImage(initialPath, title || "Choose Reference Image")} onBrowseExportFolder={async () => { const selected = await browseFolder(fluxForm.export_folder || DEFAULT_OUTPUT_IMAGES_DIR, "Choose Export Folder"); if (selected) setFluxForm((prev) => ({ ...prev, export_folder: selected })); }} health={health} onQuickSave={saveSettingsPatch} onOpenSettings={() => setPage("settings")} onOpenConnections={() => setPage("connections")} /> : null}
+              {page === "imagefinder" ? <ImageFinderPage settings={settings} imageFinderForm={imageFinderForm} setImageFinderForm={setImageFinderForm} setFluxForm={setFluxForm} onUseInKlein={() => setPage("klein9b")} /> : null}
+              {page === "guide" ? <GuidePage /> : null}
+              {page === "settings" ? <SettingsPage settings={settings} onChange={applySettings} onSave={() => saveSettingsPatch(settings)} /> : null}
+              {page === "connections" ? <ConnectionsPage settings={settings} onChange={applySettings} onSave={() => saveSettingsPatch(settings)} statuses={connectionStatuses} setStatuses={setConnectionStatuses} onBrowseExportFolder={async () => { const selected = await browseFolder(settings.export_folder, "Choose Save Folder"); if (selected) applySettings({ export_folder: selected }); }} onBrowseGeneratedFolder={async () => { const selected = await browseFolder(settings.generated_video_folder, "Choose Generated Video Library"); if (selected) applySettings({ generated_video_folder: selected }); }} /> : null}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

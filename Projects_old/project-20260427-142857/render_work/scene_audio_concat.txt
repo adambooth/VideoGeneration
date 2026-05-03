@@ -1,0 +1,4 @@
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/project-20260427-142857/render_work/scene_mux_audio_00.mp3'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/project-20260427-142857/render_work/scene_mux_audio_01.mp3'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/project-20260427-142857/render_work/scene_mux_audio_02.mp3'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/project-20260427-142857/render_work/scene_mux_audio_03.mp3'

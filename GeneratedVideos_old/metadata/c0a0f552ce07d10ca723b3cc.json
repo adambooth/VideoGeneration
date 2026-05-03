@@ -1,0 +1,14 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. cinematic shot of a chalk outline on a desolate, foggy field, police tape fluttering in the wind. wide shot, slow pan. hand-drawn animation, muted colors, rough textures. Avoid: no faces, no clear details of the body.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "no faces, no clear details of the body",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Sketchbook Storytelling",
+  "scene_purpose": "hook/setup",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\sketchbook-storytelling-hook-setup\\sketchbook-storytelling-hook-setup_c0a0f552ce07d10ca723b3cc.jpg",
+  "clip_key": "c0a0f552ce07d10ca723b3cc",
+  "clip_name": "Sketchbook Storytelling hook/setup",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\sketchbook-storytelling-hook-setup\\sketchbook-storytelling-hook-setup_c0a0f552ce07d10ca723b3cc.mp4"
+}

@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "A friendly, animated male character with short brown hair, wearing a casual blue hoodie, stands in a brightly lit, modern, minimalist studio. He gestures enthusiastically with both hands as if revealing a secret.. The character looks into the camera and says, \"Ever wonder what crazy secrets your body hides? Get ready to be amazed!\" with natural expressive delivery and realistic lip synchronization. The quoted words are the exact spoken dialogue. The final beat of the clip must still show the character clearly on-screen.. medium shot, slight zoom in for emphasis. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Consistent character, bright lighting, clean background.. Use the provided reference character in every scene. Preserve the same face, silhouette, outfit language, and visual identity across the whole sequence. The character should carry the whole scene visually with expressive motion, reactions, and clear performance beats. Keep the character visible through the end of the shot. Do not end on an empty environment frame without the character present.. Avoid: boring, static, dark, messy, multiple characters, text overlays.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "boring, static, dark, messy, multiple characters, text overlays",
+  "reference_image_signature": "69bff063128a9f914626af0a",
+  "reference_image_path": "C:/Users/adam_/Desktop/AutomatedVideoCreator/Characters/FactMaker.png",
+  "character_mode": "Solo",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "hook",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_20bc3628217c267c9c712520.jpg",
+  "clip_key": "20bc3628217c267c9c712520",
+  "clip_name": "Reference-Driven hook",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_20bc3628217c267c9c712520.mp4"
+}

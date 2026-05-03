@@ -1,0 +1,14 @@
+FACT MODE INPUT
+Topic: Hidden Human Body Facts
+Story Type: Facts / Listicle Mode
+Character Notes: One Host Character, Fact Teller, Animated, Fun, Interesting
+Character Image: uploaded and should be used as the recurring on-screen fact host.
+Create exactly 4 scenes total.
+Scene 1 is the intro hook clip.
+Scene 2 covers Fact 1 only.
+Scene 3 covers Fact 2 only.
+Scene 4 covers Fact 3 only.
+One fact per scene after the intro. Do not merge facts.
+Fact 1: Your bones are constantly dissolving and rebuilding — you get a “new” skeleton roughly every 10 years.
+Fact 2: You have a second “brain” in your gut (enteric nervous system) that can operate independently.
+Fact 3: Your immune system has a memory — it literally remembers past infections for years or life.

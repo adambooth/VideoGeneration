@@ -1,0 +1,5 @@
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/www-livescience-com-20260426-134843/voice_segments/intro.mp3'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/www-livescience-com-20260426-134843/voice_segments/scene_01.mp3'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/www-livescience-com-20260426-134843/voice_segments/scene_02.mp3'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/www-livescience-com-20260426-134843/voice_segments/scene_03.mp3'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/www-livescience-com-20260426-134843/voice_segments/scene_04.mp3'

@@ -1,0 +1,38 @@
+{
+  "project_name": "test-rollback-project",
+  "project_dir": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\Projects\\test-rollback-project",
+  "export_dir": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\Projects",
+  "urls": [],
+  "source_mode": "scene",
+  "source_prompt": "test prompt",
+  "character_brief": "",
+  "character_a_brief": "",
+  "character_b_brief": "",
+  "story_type": "Test",
+  "facts_topic": "",
+  "fact_1": "",
+  "fact_2": "",
+  "fact_3": "",
+  "stage": "Complete",
+  "source_text": "source text",
+  "source_summary": "",
+  "script_package": {
+    "title": "T",
+    "spoken_script": "S"
+  },
+  "visual_plan": [
+    {
+      "asset_path": "x.mp4"
+    }
+  ],
+  "generated_video_library_hits": [],
+  "voice_path": "voice.mp3",
+  "voice_segment_paths": [],
+  "voice_segment_durations": [],
+  "source_scene_audio_paths": [],
+  "converted_scene_audio_paths": [],
+  "continuity_frame_paths": [],
+  "music_path": "",
+  "final_video_path": "final.mp4",
+  "last_error": ""
+}

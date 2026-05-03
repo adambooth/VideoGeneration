@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Close-up on Character B (pink starfish) holding a rustic tobacco pipe, looking slightly smug. Character A (yellow square sponge) enters the frame from the left, eyes wide with a sudden, intense focus on the pipe. Character A's expression shifts from anxious to aggressive. A quick zoom on Character A's eyes.. Conversation beat: Character A: \"Character A: \"Yo, fam, what's that you're clutching? On my life, I clocked that first, bruv.\" Character B: \"Nah, moving mad, innit? This pipe's mine, I had it in my hand, you just saw it.\" Character A: \"Saw it?\". Use realistic lip synchronization for whichever character is speaking each quoted line, with clear pauses, reactions, and strict turn-taking between the two characters. Only one person speaks at a time, and there must be a short natural pause between every response. The final beat of the clip must still show the characters clearly on-screen.. Close-up, slight push-in on Character A's face, then quick pan to Character B.. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Maintain consistent character models, urban brainrot aesthetic. Gritty lighting.. Use the uploaded image as a master two-character reference. Preserve both characters, their positions, proportions, outfit logic, and identity continuity across scenes. If one character speaks first and the other answers, show clear turn-taking, visible reaction beats, and realistic conversational eye-lines. Keep both characters on-screen through the ending of the shot. Do not let the final moment drift to an empty background or lose the characters from frame.. Avoid: clean, friendly, happy, bright, cartoonish, childish, unrealistic, non-urban, no pipe.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "clean, friendly, happy, bright, cartoonish, childish, unrealistic, non-urban, no pipe",
+  "reference_image_signature": "78c534278aea9ebac6ee5a12",
+  "reference_image_path": "C:/Users/adam_/Desktop/AutomatedVideoCreator/Characters/SpongeBob/spongefightpatoverpipe.png",
+  "character_mode": "Two Character Conversation",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "hook",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_30009daa75af29c55ab52e5b.jpg",
+  "clip_key": "30009daa75af29c55ab52e5b",
+  "clip_name": "Reference-Driven hook",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_30009daa75af29c55ab52e5b.mp4"
+}

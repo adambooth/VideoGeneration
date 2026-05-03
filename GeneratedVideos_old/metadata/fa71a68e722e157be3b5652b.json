@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Close-up on the Uploaded Character, Dexter, in a dimly lit, makeshift lab. He's wearing his signature large gold chain. He's carefully measuring a white powder into a beaker with intense concentration, muttering to himself. The background is cluttered with various chemical bottles and glassware. Veo 3.1 Lite style, dynamic lighting.. The character looks into the camera and says, \"Alright, let's get this batch right. Gotta be perfect, fam. This ain't no joke, this is science, bruv.\" with natural expressive delivery and realistic lip synchronization. The quoted words are the exact spoken dialogue.. Extreme close-up on hands and powder, then a medium shot of Dexter's focused face. Slow push-in.. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Gritty, urban, slightly chaotic lab environment. Emphasize the glow of chemical reactions.. Use the provided reference character in every scene. Preserve the same face, silhouette, outfit language, and visual identity across the whole sequence. The character should appear to speak or present the story to camera in each scene with expressive mouth movement, eye-line, and presenter energy.. Avoid: bright, clean lab, smiling, talking to others.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "bright, clean lab, smiling, talking to others",
+  "reference_image_signature": "42747c3dbe702d5093229275",
+  "reference_image_path": "C:/Users/adam_/Desktop/Dexterinlab.png",
+  "character_mode": "Speaking / Presenter",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "hook",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_fa71a68e722e157be3b5652b.jpg",
+  "clip_key": "fa71a68e722e157be3b5652b",
+  "clip_name": "Reference-Driven hook",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_fa71a68e722e157be3b5652b.mp4"
+}

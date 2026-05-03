@@ -1,0 +1,7 @@
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/project-20260428-094111/render_work/mix_audio_00.mp3'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/project-20260428-094111/render_work/mix_audio_01.mp3'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/project-20260428-094111/render_work/mix_audio_02.mp3'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/project-20260428-094111/render_work/mix_audio_03.mp3'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/project-20260428-094111/render_work/mix_audio_04.mp3'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/project-20260428-094111/render_work/mix_audio_05.mp3'
+file 'C:/Users/adam_/Desktop/AutomatedVideoCreator/Projects/project-20260428-094111/render_work/mix_audio_06.mp3'

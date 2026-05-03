@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Extreme close-up on the Uploaded Character, Dexter's, face, his eyes gleaming with pure, unadulterated 'brainrot' energy. He winks conspiratorially at the camera, then quickly takes a tiny, theatrical sip from the glowing vial. His eyes widen even further, and he makes a comically exaggerated 'mind blown' expression, before a quick cut to black.. The character looks into the camera and says, \"You can't even comprehend the levels. My brain's too big for your small-time schemes. Get ready for the ultimate drop, it's gonna be legendary.\" with natural expressive delivery and realistic lip synchronization. The quoted words are the exact spoken dialogue.. extreme close-up, quick cut, jump cut. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. End with a visually striking and humorous punchline, leaving the audience wanting more.. Use the provided reference character in every scene. Preserve the same face, silhouette, outfit language, and visual identity across the whole sequence. The character should appear to speak or present the story to camera in each scene with expressive mouth movement, eye-line, and presenter energy.. Avoid: subtle reaction, long shot, no facial expression, dull lighting.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "subtle reaction, long shot, no facial expression, dull lighting",
+  "reference_image_signature": "42747c3dbe702d5093229275",
+  "reference_image_path": "C:/Users/adam_/Desktop/Dexterinlab.png",
+  "character_mode": "Speaking / Presenter",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "payoff",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-payoff\\reference-driven-payoff_20574ceead137cd44c6315b0.jpg",
+  "clip_key": "20574ceead137cd44c6315b0",
+  "clip_name": "Reference-Driven payoff",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-payoff\\reference-driven-payoff_20574ceead137cd44c6315b0.mp4"
+}

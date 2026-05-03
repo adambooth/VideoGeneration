@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Stylized 2D cartoon storytelling, animated illustration, expressive motion, cinematic composition. Use the provided reference character in every scene. Preserve the same face, silhouette, outfit language, and visual identity across the whole sequence. The character should appear to speak or present the story to camera in each scene with expressive mouth movement, eye-line, and presenter energy.. 2D cartoon animation of a brain with a 'cancel' symbol over a nose, presenter explaining. close-up on presenter, then quick cut to animated brain. Keep the animation simple and impactful.. Avoid: realistic brain, medical diagram, boring explanation.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "realistic brain, medical diagram, boring explanation",
+  "reference_image_signature": "1880faf91ebcc11586166921",
+  "reference_image_path": "C:/Users/adam_/Desktop/testchar.png",
+  "character_mode": "Speaking / Presenter",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "2D Cartoon Storytelling",
+  "scene_purpose": "escalating highlight",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\2d-cartoon-storytelling-escalating-highlight\\2d-cartoon-storytelling-escalating-highlight_fd1395a5b2bc9842b297b341.jpg",
+  "clip_key": "fd1395a5b2bc9842b297b341",
+  "clip_name": "2D Cartoon Storytelling escalating highlight",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\2d-cartoon-storytelling-escalating-highlight\\2d-cartoon-storytelling-escalating-highlight_fd1395a5b2bc9842b297b341.mp4"
+}

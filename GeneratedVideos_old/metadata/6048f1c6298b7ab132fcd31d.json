@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "A claustrophobic, shaky close-up on Character A (yellow square sponge, big blue eyes, buck teeth, white shirt, red tie, brown shorts, anxious energetic expression) in a dimly lit, rain-slicked alleyway. He's twitching, eyes darting, skeletal fingers clutching a small, crude wooden pipe. Character B (pink starfish, round belly, worried expression, green shorts with purple flowers) looms over him, sweaty and menacing, his shadow engulfing Character A. Rain streaks down their faces. The camera is handheld, slightly out of focus, emphasizing the chaotic desperation.. Conversation beat: Character A: \"Yo, bruv, that's MY pipe! On my life, I saw it first. Nah, fam, you're moving mad! This ain't yours, I had it in my hand.\". Use realistic lip synchronization for whichever character is speaking each quoted line, with clear pauses, reactions, and turn-taking between the two characters.. Extreme close-up, handheld, low-angle looking up at Character B. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Maintain the distinct cartoon character designs. Emphasize the 'tweaking' behavior and grimy aesthetic.. Use the uploaded image as a master two-character reference. Preserve both characters, their positions, proportions, outfit logic, and identity continuity across scenes. If one character speaks first and the other answers, show clear turn-taking, visible reaction beats, and realistic conversational eye-lines.. Avoid: clean, well-lit, happy, calm, static camera, wide shot, modern buildings.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "clean, well-lit, happy, calm, static camera, wide shot, modern buildings",
+  "reference_image_signature": "78c534278aea9ebac6ee5a12",
+  "reference_image_path": "C:/Users/adam_/Desktop/AutomatedVideoCreator/Characters/SpongeBob/spongefightpatoverpipe.png",
+  "character_mode": "Two Character Conversation",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "hook",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_6048f1c6298b7ab132fcd31d.jpg",
+  "clip_key": "6048f1c6298b7ab132fcd31d",
+  "clip_name": "Reference-Driven hook",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_6048f1c6298b7ab132fcd31d.mp4"
+}

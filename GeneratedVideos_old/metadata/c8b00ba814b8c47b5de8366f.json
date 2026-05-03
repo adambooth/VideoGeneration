@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "A dynamic medium shot. Character A (yellow square sponge) steps closer, pointing an accusatory finger at Character B (pink starfish), who defensively clutches the pipe tighter, pulling it to his chest. Both characters are in the same urban alley. Character A's expression is increasingly aggressive, while Character B's worried expression hardens into defiance.. Conversation beat: Character A: \"Hand it over before I get vexed, yeah?\" Character B: \"Vexed? Try me, bruv. I'll buss your head open, on my mother's life. This pipe is mine.\" Character A: \"You think you're hard, eh?\". Use realistic lip synchronization for whichever character is speaking each quoted line, with clear pauses, reactions, and strict turn-taking between the two characters. Only one person speaks at a time, and there must be a short natural pause between every response. The final beat of the clip must still show the characters clearly on-screen.. Dynamic medium shot, slight zoom-in on their faces as they speak, quick cuts between speakers.. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Keep the brainrot energy high. Exaggerated, almost cartoonish aggression.. Use the uploaded image as a master two-character reference. Preserve both characters, their positions, proportions, outfit logic, and identity continuity across scenes. If one character speaks first and the other answers, show clear turn-taking, visible reaction beats, and realistic conversational eye-lines. Keep both characters on-screen through the ending of the shot. Do not let the final moment drift to an empty background or lose the characters from frame.. Avoid: calm, friendly, no pipe, no aggression, static shot.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "calm, friendly, no pipe, no aggression, static shot",
+  "reference_image_signature": "695cd737882afaa4ba836cb5",
+  "reference_image_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\Projects\\project-20260428-090831\\continuity_frames\\scene_01_last.jpg",
+  "character_mode": "Two Character Conversation",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "escalation",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-escalation\\reference-driven-escalation_c8b00ba814b8c47b5de8366f.jpg",
+  "clip_key": "c8b00ba814b8c47b5de8366f",
+  "clip_name": "Reference-Driven escalation",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-escalation\\reference-driven-escalation_c8b00ba814b8c47b5de8366f.mp4"
+}

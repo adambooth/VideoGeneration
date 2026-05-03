@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "A low-angle, slightly shaky close-up on Character B (pink starfish, round belly, worried expression, green shorts with purple flowers) holding a tobacco pipe, taking a deep, exaggerated drag. Character A (yellow square sponge, big blue eyes, buck teeth, white shirt, red tie, brown shorts, anxious energetic expression) enters the frame from the left, eyes wide, looking agitated and fixated on the pipe. The background is a dimly lit, graffiti-covered urban alleyway.. Conversation beat: Character A: \"Character A: \"Yo, fam, what's that you're clutching, bruv? That's my pipe, innit?\" Character B: \"Nah, on my life, this ain't yours. I just copped it, moving mad if you think otherwise.\" Character A: \"Moving mad? You're the one moving mad, fam!\". Use realistic lip synchronization for whichever character is speaking each quoted line, with clear pauses, reactions, and strict turn-taking between the two characters. Only one person speaks at a time, and there must be a short natural pause between every response. The final beat of the clip must still show the characters clearly on-screen.. Low-angle close-up, slightly shaky handheld feel, push-in on Character A's face.. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Maintain consistent character design and urban brainrot aesthetic. Exaggerated expressions.. Use the uploaded image as a master two-character reference. Preserve both characters, their positions, proportions, outfit logic, and identity continuity across scenes. If one character speaks first and the other answers, show clear turn-taking, visible reaction beats, and realistic conversational eye-lines. Keep both characters on-screen through the ending of the shot. Do not let the final moment drift to an empty background or lose the characters from frame.. Avoid: clean, bright, happy, friendly, no pipe, no urban setting.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "clean, bright, happy, friendly, no pipe, no urban setting",
+  "reference_image_signature": "78c534278aea9ebac6ee5a12",
+  "reference_image_path": "C:/Users/adam_/Desktop/AutomatedVideoCreator/Characters/SpongeBob/spongefightpatoverpipe.png",
+  "character_mode": "Two Character Conversation",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "hook",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_7f92282d6b937cd055222072.jpg",
+  "clip_key": "7f92282d6b937cd055222072",
+  "clip_name": "Reference-Driven hook",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_7f92282d6b937cd055222072.mp4"
+}

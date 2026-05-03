@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Close-up shot of the Uploaded Character, Dexter, wearing oversized lab goggles and a pristine lab coat, confidently gesturing with a gloved hand towards a complex array of bubbling beakers and flashing scientific equipment. He has a cocky smirk, and his eyes dart conspiratorially to the camera. The lab is dimly lit with neon green and purple hues.. The character looks into the camera and says, \"Yo, check the drip, fam. Dexter's in the lab, moving mad scientist ting. These calculations don't lie, bruv. We're about to cook up something proper vexed, on my life.\" with natural expressive delivery and realistic lip synchronization. The quoted words are the exact spoken dialogue.. close-up, slight low-angle, push-in. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Maintain the cartoonish, exaggerated style of Dexter's Lab with urban elements.. Use the provided reference character in every scene. Preserve the same face, silhouette, outfit language, and visual identity across the whole sequence. The character should appear to speak or present the story to camera in each scene with expressive mouth movement, eye-line, and presenter energy.. Avoid: boring lab, no character expression, clean white lab, generic science.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "boring lab, no character expression, clean white lab, generic science",
+  "reference_image_signature": "42747c3dbe702d5093229275",
+  "reference_image_path": "C:/Users/adam_/Desktop/Dexterinlab.png",
+  "character_mode": "Speaking / Presenter",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "hook",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_11d79d4e720cade3630e10ba.jpg",
+  "clip_key": "11d79d4e720cade3630e10ba",
+  "clip_name": "Reference-Driven hook",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-hook\\reference-driven-hook_11d79d4e720cade3630e10ba.mp4"
+}

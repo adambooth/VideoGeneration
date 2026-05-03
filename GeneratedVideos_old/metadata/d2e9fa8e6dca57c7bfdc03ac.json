@@ -1,0 +1,14 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. cinematic shot of a body outline in foggy woods at dawn, question mark overlay. slow zoom out, atmospheric. hand-drawn animation, muted colors, sketchy lines. Avoid: bright colors, clear sky, people.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "bright colors, clear sky, people",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Sketchbook Storytelling",
+  "scene_purpose": "hook/setup",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\Projects\\www-theguardian-com-20260426-112912\\assets\\scene_01_poster.jpg",
+  "clip_key": "d2e9fa8e6dca57c7bfdc03ac",
+  "clip_name": "Sketchbook Storytelling hook/setup",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\sketchbook-storytelling-hook-setup\\sketchbook-storytelling-hook-setup_d2e9fa8e6dca57c7bfdc03ac.mp4"
+}

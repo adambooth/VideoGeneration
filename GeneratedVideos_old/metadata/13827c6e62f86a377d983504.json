@@ -1,0 +1,14 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. a faded, sepia-toned photograph of a young man slowly coming into focus, surrounded by soft candlelight, then transitioning to a simple gravestone with a name etched on it. slow zoom, gentle pan. soft focus, warm tones, delicate textures. Avoid: no modern elements, no overly cheerful expressions.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "no modern elements, no overly cheerful expressions",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Sketchbook Storytelling",
+  "scene_purpose": "reveal/emotional ending",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\sketchbook-storytelling-reveal-emotional-ending\\sketchbook-storytelling-reveal-emotional-ending_13827c6e62f86a377d983504.jpg",
+  "clip_key": "13827c6e62f86a377d983504",
+  "clip_name": "Sketchbook Storytelling reveal/emotional ending",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\sketchbook-storytelling-reveal-emotional-ending\\sketchbook-storytelling-reveal-emotional-ending_13827c6e62f86a377d983504.mp4"
+}

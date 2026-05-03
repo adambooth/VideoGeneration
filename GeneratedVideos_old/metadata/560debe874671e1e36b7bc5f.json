@@ -1,0 +1,17 @@
+{
+  "model": "veo-3.1-lite-generate-preview",
+  "prompt": "Medium shot of the Uploaded Character, Dexter, intensely stirring a glowing, viscous liquid in a large beaker with a comically oversized stirring rod. His expression is a mix of intense focus and mischievous glee. Sparks fly from the mixture, and a dramatic plume of purple smoke billows upwards. He glances at the camera with a knowing look.. The character looks into the camera and says, \"Opps ain't ready for this formula, trust. They're gonna be washed when this drops. This ain't no cap, this is pure finesse. My beakers are bubbling, the whole block's gonna feel this.\" with natural expressive delivery and realistic lip synchronization. The quoted words are the exact spoken dialogue.. medium shot, slight zoom, handheld chaos. Stylized 2D sketchbook animation, hand-drawn ink lines, cinematic lighting, storybook motion. Keep the visual effects vibrant and exaggerated, matching the cartoonish tone.. Use the provided reference character in every scene. Preserve the same face, silhouette, outfit language, and visual identity across the whole sequence. The character should appear to speak or present the story to camera in each scene with expressive mouth movement, eye-line, and presenter energy.. Avoid: calm reaction, no visual effects, bland lab equipment.. No subtitles, no captions, no text overlays, no logos, narration-only visual storytelling.. Vertical short-form storytelling clip",
+  "negative_prompt": "calm reaction, no visual effects, bland lab equipment",
+  "reference_image_signature": "42747c3dbe702d5093229275",
+  "reference_image_path": "C:/Users/adam_/Desktop/Dexterinlab.png",
+  "character_mode": "Speaking / Presenter",
+  "duration_seconds": 8,
+  "aspect_ratio": "9:16",
+  "resolution": "720p",
+  "style_name": "Reference-Driven",
+  "scene_purpose": "action",
+  "poster_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-action\\reference-driven-action_560debe874671e1e36b7bc5f.jpg",
+  "clip_key": "560debe874671e1e36b7bc5f",
+  "clip_name": "Reference-Driven action",
+  "video_path": "C:\\Users\\adam_\\Desktop\\AutomatedVideoCreator\\GeneratedVideos\\reference-driven-action\\reference-driven-action_560debe874671e1e36b7bc5f.mp4"
+}
